@@ -1,0 +1,238 @@
+/*-------------------------------------------------------------------
+[1. LOGIN]
+*------------------------------------------------------------------*/
+
+/* My Account */
+.account-form{
+	display:flex;
+	width: 100%;
+	position: relative;
+}
+.account-head{
+	position: sticky;
+	left:0;
+	top:0;
+	z-index: 1;
+	width: 500px;
+	min-width: 500px;
+	height: 100vh;
+	background-position: center;
+	text-align: center;
+	align-items: center;
+	display: flex;
+	vertical-align: middle;
+}
+.account-head a{
+	display:block;
+	width:100%;
+}
+.account-head:after{
+	opacity:0.9;
+	content:"";
+	position:absolute;
+	left:0;
+	top:0;
+	z-index:-1;
+	width:100%;
+	height:100%;
+	background: #ff5e14; /* Old browsers */
+	background: -moz-linear-gradient(45deg, #ff5e14 0%, #ff8e14 100%); /* FF3.6-15 */
+	background: -webkit-linear-gradient(45deg, #ff5e14 0%,#ff8e14 100%); /* Chrome10-25,Safari5.1-6 */
+	background: linear-gradient(45deg, #ff5e14 0%,#ff8e14 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ff5e14', endColorstr='#ff8e14',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
+}
+.account-form-inner {
+    width: 100%;
+	align-self: center;
+}
+.account-container {
+    max-width: 400px;
+	margin: auto;
+	padding: 30px 0;	
+}
+.custom-control-label:before{
+	width: 20px;
+	height: 20px;
+	background-color: transparent;
+	border: 2px solid var(--primary);
+	top: 2px;
+}
+.custom-control-label:after{
+	width: 20px;
+	height: 20px;
+	top: 2px;
+}
+.custom-checkbox .custom-control-input:checked ~ .custom-control-label::before{
+	background-color: var(--primary);
+}
+.account-container .form-forget{
+	display:flex;
+}
+.account-container .form-forget .custom-control-label{
+	font-weight:400;
+}
+.account-container .btn.button-md{
+	padding: 12px 40px;
+}
+.account-container .form-control{
+	border-color: rgba(0,0,0,0.2);
+}
+.account-container .facebook i,
+.account-container .google-plus i{
+	border-right:1px solid #fff;
+	padding-right:10px;
+	margin-right:10px;
+}
+.account-form .heading-bx p a{
+	color: var(--primary);
+	text-decoration: underline;
+	padding-bottom: 0px;
+}
+
+/* if theme == 1 (yellow) */
+.account-heads {
+	position: sticky;
+	left:0;
+	top:0;
+	z-index: 1;
+	width: 500px;
+	min-width: 500px;
+	height: 100vh;
+	background-position: center;
+	text-align: center;
+	align-items: center;
+	display: flex;
+	vertical-align: middle;
+}
+.account-heads a{
+	display:block;
+	width:100%;
+}
+.account-heads:after{
+	opacity:0.9;
+	content:"";
+	position:absolute;
+	left:0;
+	top:0;
+	z-index:-1;
+	width:100%;
+	height:100%;
+	background: transparent;
+}
+
+@media only screen and (max-width: 1200px) {
+	.account-heads{
+		width: 350px;
+		min-width: 350px;
+	}
+
+}
+
+@media only screen and (max-width: 991px) {
+	.account-heads {
+		width: 100%;
+		min-width: 100%;
+		height: 200px;
+	}
+}
+
+/* if theme == 2 (maroon) */
+.account-headss {
+	position: sticky;
+	left:0;
+	top:0;
+	z-index: 1;
+	width: 500px;
+	min-width: 500px;
+	height: 100vh;
+	background-position: center;
+	text-align: center;
+	align-items: center;
+	display: flex;
+	vertical-align: middle;
+}
+.account-headss a{
+	display:block;
+	width:100%;
+}
+.account-headss:after{
+	opacity:0.9;
+	content:"";
+	position:absolute;
+	left:0;
+	top:0;
+	z-index:-1;
+	width:100%;
+	height:100%;
+	background: transparent;
+	background-color: #800000!important;
+}
+
+@media only screen and (max-width: 1200px) {
+	.account-headss{
+		width: 350px;
+		min-width: 350px;
+	}
+
+}
+
+@media only screen and (max-width: 991px) {
+	.account-heads {
+		width: 100%;
+		min-width: 100%;
+		height: 200px;
+	}
+}
+
+
+/* if theme == 3 (CIC) */
+.account-headsss {
+	position: sticky;
+	left:0;
+	top:0;
+	z-index: 1;
+	width: 500px;
+	min-width: 500px;
+	height: 100vh;
+	background-position: center;
+	text-align: center;
+	align-items: center;
+	display: flex;
+	vertical-align: middle;
+}
+.account-headsss a{
+	display:block;
+	width:100%;
+}
+
+.account-headsss:after{
+	opacity:0.9;
+	content:"";
+	position:absolute;
+	left:0;
+	top:0;
+	z-index:-1;
+	width:100%;
+	height:100%;
+	background-color: #66655e!important;
+}
+
+.login {
+	background-color: yellow;
+	content:"";
+	position:absolute;
+	left:0;
+	top:0;
+	z-index:-1;
+	width:100%;
+	height:100%;
+	opacity:0.4;
+}
+
+.login-logo {
+	width:100%;
+	max-width:200px;
+	margin: 0 auto;
+}
+
+
