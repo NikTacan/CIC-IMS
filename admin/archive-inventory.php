@@ -73,10 +73,16 @@
 					<span class="ttr-label" style="color: #D5D6D8; font-weight: 500;">Admin Settings</span>
 				</li>
 				<li class="" style="margin-top: 0px;">
+					<a href="sub-admin" class="ttr-material-button">
+						<span class="ttr-icon"><i class="fa fa-address-book" aria-hidden="true"></i></span>
+						<span class="ttr-label">Sub Admin</span>
+					</a>
+				</li>
+				<li class="" style="margin-top: 0px;">
 					<div class="accordion accordion-flush" id="accordionSettings">
 						<div class="accordion-item">
 							<h2 class="accordion-header">
-							<button class="accordion-button ps-3.5 py-1 collapsed" style="text-color: #FFFFFF; color: #FFFFFF;" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSettings" aria-expanded="true" aria-controls="collapseSettings" ><i class="fa fa-solid fa-gear me-2 pe-3" aria-hidden="true"></i>
+							<button class="accordion-button ps-3.5 py-1 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSettings" aria-expanded="true" aria-controls="collapseSettings" ><i class="fa fa-solid fa-gear me-2 pe-3" aria-hidden="true"></i>
 							Settings
 							</button>
 							</h2>
@@ -160,6 +166,7 @@
 							</div>
 						<?php endif; ?>
 						
+						<div class="table-responsive">
 						<!-- Table -->
 						<table id="table" class="table" style="width:100%">
 							<thead>
@@ -168,7 +175,7 @@
 									<th class="col-3">Description</th>
 									<th class="col-2">Article</th>
 									<th class="col-2">Date Archived</th>
-									<th class="col-1">Action</th>
+									<th class="col-sm-1 col-lg-2">Action</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -185,12 +192,12 @@
 											<td><?php echo $inventory['date_archived']; ?></td>
 											<td>
 												<center>
-													<button data-toggle="modal" data-target="#restore-<?php echo $archive_id; ?>" class="btn green" style="width: 50px; height: 37px;">
+													<button data-toggle="modal" data-target="#restore-<?php echo $archive_id; ?>" class="btn green mt-1" style="width: 50px; height: 37px;">
 														<span data-toggle="tooltip" title="Restore">
 															<i class="ti-reload" style="font-size: 12px;"></i>
 														</span>
 													</button>
-													<button data-toggle="modal" data-target="#delete-<?php echo $archive_id; ?>" class="btn red" style="width: 50px; height: 37px;">
+													<button data-toggle="modal" data-target="#delete-<?php echo $archive_id; ?>" class="btn red mt-1" style="width: 50px; height: 37px;">
 														<span data-toggle="tooltip" title="Delete">
 															<i class="ti-archive" style="font-size: 12px;"></i>
 														</span>
@@ -382,6 +389,7 @@
 
 							</tbody>
 						</table>
+						</div>
 
 						<?php
 

@@ -145,14 +145,13 @@
 
 								<div class="float-left">
 
-									<?php if($user['role_id'] != '1'): ?>
+									<!-- Update Profile button -->
 									<div class="float-left my-1">
 										<button type="button" class="btn blue radius-xl" data-toggle="modal" data-target="#update-user-<?php echo $user_id; ?>">
 											<i class="ti-marker-alt" title="Edit"></i>
 											<span data-toggle="tooltip">&nbsp;&nbsp;Edit Profile</span>
 										</button>
-									</div> 
-									<?php endif; ?>
+									</div> <!-- Update Profile button -->
 
 									<!-- Reset Password button -->
 									<div class="float-left mx-1 my-1">
@@ -412,6 +411,37 @@
 	<?php include('../includes/layouts/main-layouts/scripts.php'); ?>
 	<?php include('../includes/js/data-tables.php'); ?>
 	<?php include('../includes/js/preloader.php'); ?>
+
+	<script>
+		
+        // Function to toggle password visibility
+        function togglePasswordVisibility(inputId, toggleId) {
+            var input = document.getElementById(inputId);
+            var toggle = document.getElementById(toggleId);
+            if (input.type === "password") {
+                input.type = "text";
+                toggle.classList.remove("fa-eye");
+                toggle.classList.add("fa-eye-slash");
+            } else {
+                input.type = "password";
+                toggle.classList.remove("fa-eye-slash");
+                toggle.classList.add("fa-eye");
+            }
+        }
+
+        // Event listeners for toggling password visibility
+        document.getElementById("old-password-toggle").addEventListener("click", function() {
+            togglePasswordVisibility("old-password", "old-password-toggle");
+        });
+
+        document.getElementById("new-password-toggle").addEventListener("click", function() {
+            togglePasswordVisibility("new-password", "new-password-toggle");
+        });
+
+        document.getElementById("confirm-password-toggle").addEventListener("click", function() {
+            togglePasswordVisibility("confirm-password", "confirm-password-toggle");
+        });
+	</script>
 
 </body>
 </html>

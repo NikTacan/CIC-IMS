@@ -2,14 +2,14 @@
 <?php include('../includes/alert.php'); ?>
 
 <?php
-	$endUsers = $model->getEndUser();
+	$subAdmins = $model->getSubAdmin();
 	$designations = $model->getDesignation();
 ?>
 
 <?php include('../includes/layouts/main-layouts/html-head.php') ?>
 
 
-	<title>End User | <?php echo $customize['sys_name']; ?></title>
+	<title>Sub Admin | <?php echo $customize['sys_name']; ?></title>
 
 </head>
 <body class="ttr-opened-sidebar ttr-pinned-sidebar" style="background-color: #F3F3F3;">
@@ -40,7 +40,7 @@
 						<span class="ttr-label">Assignment</span>
 					</a>
 				</li>
-				<li class="show" style="margin-top: 0px;">
+				<li class="" style="margin-top: 0px;">
 					<a href="end-user" class="ttr-material-button">
 						<span class="ttr-icon"><i class="fa fa-address-book" aria-hidden="true"></i></span>
 						<span class="ttr-label">End Users</span>
@@ -70,11 +70,10 @@
 						<span class="ttr-label">Report</span>
 					</a>
 				</li>
-				<?php if($userInfo['role_id'] == 1): ?>
 				<li style="padding-left: 20px; padding-top: 40px; padding-bottom: 5px; margin-top: 0px; margin-bottom: 0px;">
 					<span class="ttr-label" style="color: #D5D6D8; font-weight: 500;">Admin Settings</span>
 				</li>
-				<li class="" style="margin-top: 0px;">
+				<li class="show" style="margin-top: 0px;">
 					<a href="sub-admin" class="ttr-material-button">
 						<span class="ttr-icon"><i class="fa fa-address-book" aria-hidden="true"></i></span>
 						<span class="ttr-label">Sub Admin</span>
@@ -117,14 +116,6 @@
 						<span class="ttr-label">Archives</span>
 					</a>
 				</li>
-				<?php else: ?>
-				<li class="" style="margin-top: 0px;">
-					<a href="history" class="ttr-material-button">
-						<span class="ttr-icon"><i class="fa fa-history" aria-hidden="true"></i></span>
-						<span class="ttr-label">Activity Logs</span>
-					</a>
-				</li>
-				<?php endif; ?>
 			</ul>
 		</nav>
 	</div>
@@ -137,15 +128,13 @@
             <div class="col-12">
                 <div class="d-flex justify-content-between align-items-center">
                     <!-- Header aligned to the left -->
-                    <h2 class="p-0 mb-0">End Users</h2>
+                    <h2 class="p-0 mb-0">Sub Admin</h2>
 
-					<?php if($userInfo['role_id'] == 1): ?>
-						<!-- Button aligned to the right -->
-						<button type="button" class="btn green radius-xl" style="background-color: #5ADA86;" data-toggle="modal" data-target="#create-endUser">
-							<i class="fa fa-plus"></i>
-							<span class="d-none d-lg-inline">&nbsp;&nbsp;ADD END USER</span>
-						</button>
-					<?php endif; ?>
+                    <!-- Button aligned to the right -->
+                    <button type="button" class="btn green radius-xl" style="background-color: #5ADA86;" data-toggle="modal" data-target="#create-subAdmin">
+                        <i class="fa fa-plus"></i>
+                        <span class="d-none d-lg-inline">&nbsp;&nbsp;ADD SUB ADMIN</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -174,8 +163,8 @@
 						<?php endif; ?>
 
 						<!-- Create New End user modal/forms -->
-						<div id="create-endUser" class="modal fade" role="dialog">
-							<form class="create-endUser m-b30" method="POST" enctype="multipart/form-data">
+						<div id="create-subAdmin" class="modal fade" role="dialog">
+							<form class="create-subAdmin m-b30" method="POST" enctype="multipart/form-data">
 								<div class="modal-dialog modal-lg">
 									<div class="modal-content">
 										<div class="modal-header">
@@ -207,10 +196,6 @@
 															<input class="form-control" type="text" name="lastname" value="" placeholder="Enter lastname" maxlength="35" required>
 														</div>
 														<div class="form-group col-4">
-															<label class="col-form-label">Birthday</label>
-															<input class="form-control" type="date" name="birthday" value="" required max="<?php echo date('Y-m-d'); ?>" >
-														</div>
-														<div class="form-group col-4">
 															<label class="col-form-label">Designation</label>
 															<select class="form-control" name="designation" required>
 																<option value="" selected disabled hidden>-- Select designation --</option>
@@ -231,11 +216,7 @@
 																<option value="Female">Female</option>
 															</select>
 														</div>
-														<div class="form-group col-6">
-															<label class="col-form-label">Email</label>
-															<input class="form-control" type="text" name="email" value="" placeholder="Enter email address" maxlength="50" required>
-														</div>
-														<div class="form-group col-6">
+														<div class="form-group col-4">
 															<label class="col-form-label">Contact</label>
 															<input class="form-control" type="tel" name="contact" placeholder="0912-34-5678" name="contact" value="" size="11" maxlength="11" placeholder="Enter contact number" required>
 														</div>
@@ -244,7 +225,7 @@
 											</div>
 										</div>
 										<div class="modal-footer">
-											<input type="submit" class="btn green radius-xl outline" name="create-endUser" value="Save">
+											<input type="submit" class="btn green radius-xl outline" name="create-subAdmin" value="Save">
 											<button type="button" class="btn red outline radius-xl" data-dismiss="modal">Close</button>
 										</div>
 									</div>
@@ -258,75 +239,58 @@
 								<thead>
 									<tr>
 										<th class="col-1">#</th>
-										<th class="col-3">Name of Accountable Officer</th>
+										<th class="col-3">Username</th>
 										<th class="col-2">Designation</th>
 										<th class="col-2">Status</th>
 										<th class="col-2">Date Registered</th>
-										<?php if($userInfo['role_id'] == 1): ?>
-											<th class="col-2 text-center">Action</th>
-										<?php else: ?>
-											<th class="col-1 text-center">Action</th>
-										<?php endif; ?>
+										<th class="col-1 text-center">Action</th>
 									</tr>
 								</thead>
 								<tbody>
-									<?php if (!empty($endUsers)): ?>
-										<?php foreach ($endUsers as $key => $endUser): ?>
+									<?php if (!empty($subAdmins)): ?>
+										<?php foreach ($subAdmins as $key => $subAdmin): ?>
 											<?php 
-												$endUser_id = $endUser['end_user_id'];
-											 	$status = $endUser['status']; 
-											 	$user_id = $endUser['user_id'];
+												$subAdmin_id = $subAdmin['sub_admin_id'];
+											 	$status = $subAdmin['status']; 
+											 	$user_id = $subAdmin['user_id'];
 											 ?>
 										
 											
 											<tr>
 												<td width="50"><?php echo $key + 1; ?></td>
-												<td><?php echo $endUser['username']; ?></td>
-												<td><?php echo $endUser['designation_name']; ?></td>
+												<td><?php echo $subAdmin['username']; ?></td>
+												<td><?php echo $subAdmin['designation_name']; ?></td>
 												<td>
 													<?php if($status == '1'): ?>
-														<button class="btn green btn-sm radius-xl " data-toggle="modal" data-target="#update-status-<?php echo $endUser_id; ?>" type="submit" name="view">
+														<button class="btn green btn-sm radius-xl " data-toggle="modal" data-target="#update-status-<?php echo $subAdmin_id; ?>" type="submit" name="view">
 															<span class="d-none d-md-inline" data-toggle="tooltip" title="Inactivate">Active</span>
 														</button>
 													<?php else: ?>
-														<button class="btn red radius-xl btn-sm" data-toggle="modal" data-target="#update-status-<?php echo $endUser_id; ?>" type="submit" name="view">
+														<button class="btn red radius-xl btn-sm" data-toggle="modal" data-target="#update-status-<?php echo $subAdmin_id; ?>" type="submit" name="view">
 															<span class="d-none d-md-inline" data-toggle="tooltip" title="Activate">Inactive</span>
 														</button>
 													<?php endif; ?>
 												</td>
-												<td><?php echo date('F d, Y', strtotime($endUser['date_registered'])); ?></td>
+												<td><?php echo date('F d, Y', strtotime($subAdmin['date_registered'])); ?></td>
 												
 												<td class="text-center">
 													<center>
-													<?php if($userInfo['role_id'] == 1): ?>
-														<button class="btn green" onclick="window.location.href='end-user-view.php?id=<?php echo $endUser_id;?>'" type="submit" name="view"  style="width: 50px; height: 37px;">
-															<span data-toggle="tooltip" title="View">
-																<i class="ti-search" style="font-size: 12px;"></i>
-															</span>
-														</button>
-														<button data-toggle="modal" data-target="#update-endUser-<?php echo $endUser_id; ?>" class="btn blue" style="width: 50px; height: 37px;">
+														<button data-toggle="modal" data-target="#update-subAdmin-<?php echo $subAdmin_id; ?>" class="btn blue" style="width: 50px; height: 37px;">
 															<span data-toggle="tooltip" title="Update">
 																<i class="ti-marker-alt" style="font-size: 12px;"></i>
 															</span>
 														</button>
-													<?php else: ?>
-														<button class="btn green" onclick="window.location.href='end-user-view.php?id=<?php echo $endUser_id;?>'" type="submit" name="view"  style="width: 50px; height: 37px;">
-															<span data-toggle="tooltip" title="View">
-																<i class="ti-search" style="font-size: 12px;"></i>
-															</span>
-														</button>
-													<?php endif; ?>
 													</center>
 												</td>
 											</tr>
 
 											<!-- Update Status -->
-											<div id="update-status-<?php echo $endUser_id; ?>" class="modal fade" role="dialog">
+											<div id="update-status-<?php echo $subAdmin_id; ?>" class="modal fade" role="dialog">
 												<form class="update-status m-b30" method="POST" enctype="multipart/form-data">
 													<div class="modal-dialog modal-md">
 														<div class="modal-content">
 															<div class="modal-body">
-																<input type="hidden" name="endUser_id" value="<?php echo $endUser_id; ?>">
+																<input type="hidden" name="subAdmin_id" value="<?php echo $subAdmin_id; ?>">
 																<div class="row">
 																	<div class="form-group col-12 py-1 mt-2">
 																		<div class="row">
@@ -348,9 +312,9 @@
 											</div>
 											<!-- -->
 
-											<!-- Update End user modal/form -->
-											<div id="update-endUser-<?php echo $endUser_id; ?>" class="modal fade" role="dialog">
-												<form class="update-endUser m-b30" method="POST" enctype="multipart/form-data">
+											<!-- Update Sub admin modal/form -->
+											<div id="update-subAdmin-<?php echo $subAdmin_id; ?>" class="modal fade" role="dialog">
+												<form class="update-subAdmin m-b30" method="POST" enctype="multipart/form-data">
 													<div class="modal-dialog modal-lg">
 														<div class="modal-content">
 															<div class="modal-header">
@@ -359,12 +323,12 @@
 															</div>
 															<div class="modal-body">
 																<div class="row">
-																	<input type="hidden" name="endUser_id" value="<?php echo $endUser_id; ?>">
+																	<input type="hidden" name="subAdmin_id" value="<?php echo $subAdmin_id; ?>">
 																	<div class="form-group col-12" style="padding-bottom: 15px;">
 																		<div class="row">
 																			<div class="form-group col-8">
 																				<label class="col-form-label">Username</label>
-																				<input class="form-control" type="text" name="username" value="<?php echo $endUser['username']; ?>" maxlength="20" required>
+																				<input class="form-control" type="text" name="username" value="<?php echo $subAdmin['username']; ?>" maxlength="20" required>
 																			</div>
 																			<div class="form-group col-4">
 																				<label class="col-form-label">Password</label><br>
@@ -374,25 +338,21 @@
 																			</div>
 																			<div class="form-group col-4">
 																				<label class="col-form-label">First name</label>
-																				<input class="form-control" type="text" name="firstname" value="<?php echo $endUser['first_name']; ?>" maxlength="15" required>
+																				<input class="form-control" type="text" name="firstname" value="<?php echo $subAdmin['first_name']; ?>" maxlength="15" required>
 																			</div>
 																			<div class="form-group col-4">
 																				<label class="col-form-label">Middle name</label>
-																				<input class="form-control" type="text" name="middlename" value="<?php echo $endUser['middle_name']; ?>" maxlength="35" required>
+																				<input class="form-control" type="text" name="middlename" value="<?php echo $subAdmin['middle_name']; ?>" maxlength="35" required>
 																			</div>
 																			<div class="form-group col-4">
 																				<label class="col-form-label">Last name</label>
-																				<input class="form-control" type="text" name="lastname" value="<?php echo $endUser['last_name']; ?>" maxlength="35" required>
-																			</div>
-																			<div class="form-group col-4">
-																				<label class="col-form-label">Birthday</label>
-																				<input class="form-control" type="date" name="birthday" value="<?php echo $endUser['birthday']; ?>" required max="<?php echo date('Y-m-d'); ?>">
+																				<input class="form-control" type="text" name="lastname" value="<?php echo $subAdmin['last_name']; ?>" maxlength="35" required>
 																			</div>
 																			<div class="form-group col-4">
 																				<label class="col-form-label">Sex</label>
 																				<select name="sex" id="sex" class="form-control">
-																					<option value="male" <?php if ($endUser['sex'] == 'male') echo 'selected'; ?>>Male</option>
-																					<option value="female" <?php if ($endUser['sex'] == 'female') echo 'selected'; ?>>Female</option>
+																					<option value="male" <?php if ($subAdmin['sex'] == 'male') echo 'selected'; ?>>Male</option>
+																					<option value="female" <?php if ($subAdmin['sex'] == 'female') echo 'selected'; ?>>Female</option>
 																				</select>
 																			</div>
 																			<div class="form-group col-4">
@@ -400,33 +360,29 @@
 																				<select class="form-control" name="designation" required>
 																					<?php if (!empty($designations)): ?>
 																						<?php foreach ($designations as $update_designation): ?>
-																							<option value="<?php echo $update_designation['id']; ?>" <?php if ($endUser['designation_id'] == $update_designation['id']) { echo 'selected'; } ?>>
+																							<option value="<?php echo $update_designation['id']; ?>" <?php if ($subAdmin['designation_id'] == $update_designation['id']) { echo 'selected'; } ?>>
 																								<?php echo $update_designation['designation_name']; ?>
 																							</option>
 																						<?php endforeach; ?>
 																					<?php endif; ?>
 																				</select>
 																			</div>
-																			<div class="form-group col-6">
-																				<label class="col-form-label">Email</label>
-																				<input class="form-control" type="text" name="email" value="<?php echo $endUser['email']; ?>" maxlength="50" required>
-																			</div>
-																			<div class="form-group col-6">
+																			<div class="form-group col-4">
 																				<label class="col-form-label">Contact</label>
-																				<input class="form-control" type="number" name="contact" value="<?php echo $endUser['contact']; ?>" maxlength="11" required>
+																				<input class="form-control" type="number" name="contact" value="<?php echo $subAdmin['contact']; ?>" maxlength="11" required>
 																			</div>
 																		</div>
 																	</div>
 																</div>
 															</div>
 															<div class="modal-footer">
-																<input type="submit" class="btn green radius-xl outline" name="update-endUser" value="Save Changes">
+																<input type="submit" class="btn green radius-xl outline" name="update-subAdmin" value="Save Changes">
 																<button type="button" class="btn red outline radius-xl" data-dismiss="modal">Close</button>
 															</div>
 														</div>
 													</div>
 												</form>
-											</div> <!-- Update End user modal/form -->
+											</div> <!-- Update Sub admin modal/form -->
 
 											<!-- reset password modal -->
 											<div id="reset-password-<?php echo $user_id; ?>" class="modal fade" role="dialog">
@@ -452,75 +408,6 @@
 												</form>
 											</div> <!-- reset password modal -->
 
-											<!-- Delete end user record form/modal -->
-											<div id="delete-endUser-<?php echo $endUser_id; ?>" class="modal fade" role="dialog">
-												<form class="delete-endUser m-b30" method="POST">
-													<div class="modal-dialog modal-lg">
-														<div class="modal-content">
-															<div class="modal-header">
-																<h4 class="modal-title">&nbsp;Delete Record</h4>
-																<button type="button" class="close" data-dismiss="modal">&times;</button>
-															</div>															
-															<div class="modal-body">
-																<div class="row">
-																	<input type="hidden" name="endUser_id" value="<?php echo $endUser_id; ?>">
-																	<div class="form-group col-12" style="padding-bottom: 15px;">
-																		<div class="row">
-																			<div class="form-group col-8">
-																				<label class="col-form-label">Username</label>
-																				<input class="form-control" type="text" name="username" value="<?php echo $endUser['username']; ?>" readonly>
-																			</div>
-																			<div class="form-group col-4">
-																				<label class="col-form-label">Designation</label>
-																				<input class="form-control" type="text" name="username" value="<?php echo $endUser['designation_name']; ?>" readonly>
-																				</select>
-																			</div>
-																			<div class="form-group col-4">
-																				<label class="col-form-label">First name</label>
-																				<input class="form-control" type="text" name="firstName" value="<?php echo $endUser['first_name']; ?>" readonly>
-																			</div>
-																			<div class="form-group col-4">
-																				<label class="col-form-label">Middle name</label>
-																				<input class="form-control" type="text" name="middleName" value="<?php echo $endUser['middle_name']; ?>" readonly>
-																			</div>
-																			<div class="form-group col-4">
-																				<label class="col-form-label">Last name</label>
-																				<input class="form-control" type="text" name="lastName" value="<?php echo $endUser['last_name']; ?>" readonly>
-																			</div>
-																			<div class="form-group col-4">
-																				<label class="col-form-label">Birthday</label>
-																				<input class="form-control" type="date" name="birthday" value="<?php echo $endUser['birthday']; ?>" readonly>
-																			</div>
-																			<div class="form-group col-4">
-																				<label class="col-form-label">Password</label>
-																				<input class="form-control" type="password" name="password" value="<?php echo $endUser['password']; ?>" readonly>
-																			</div>
-																			<div class="form-group col-4">
-																				<label class="col-form-label">Sex</label>
-																				<input class="form-control" type="text" name="sex" value="<?php echo $endUser['sex']; ?>" readonly>
-																			</div>
-
-																			<div class="form-group col-6">
-																				<label class="col-form-label">Email</label>
-																				<input class="form-control" type="text" name="email" value="<?php echo $endUser['email']; ?>" readonly>
-																			</div>
-																			<div class="form-group col-6">
-																				<label class="col-form-label">Contact</label>
-																				<input class="form-control" type="number" name="contact" value="<?php echo $endUser['contact']; ?>" readonly>
-																			</div>
-																		</div>
-																	</div>
-																</div>
-															</div>
-															<div class="modal-footer">
-																<input type="submit" class="btn green radius-xl outline" name="delete-endUser" value="Delete" onClick="return confirm('Delete This Record?')">
-																<button type="button" class="btn red outline radius-xl" data-dismiss="modal">Close</button>
-															</div>
-														</div>
-													</div>
-												</form>
-											</div> <!-- Delete end user record form/modal -->
-
 										<?php endforeach; ?> <!-- table data end foreach -->
 									<?php endif; ?> <!-- table data endif -->
 
@@ -530,14 +417,12 @@
 
 						<?php
 							/* Insert new end user controller */
-							if (isset($_POST['create-endUser'])) {
+							if (isset($_POST['create-subAdmin'])) {
 								$username = $_POST['username'];
 								$firstname = $_POST['firstname'];
 								$middlename = $_POST['middlename'];
 								$lastname = $_POST['lastname'];
-								$birthday = $_POST['birthday'];
 								$sex = $_POST['sex'];
-								$email = $_POST['email'];
 								$password = $_POST['password'];
 								$contact = $_POST['contact'];
 								$designation = $_POST['designation'];
@@ -546,22 +431,23 @@
 								if ($model->usernameExists($username)) {
 
 									$_SESSION['errorMessage'] = "Username already exist!";
-									header("Location: end-user.php");
+									header("Location: sub-admin.php");
 									exit();
 								} else {
 
-									$model->createEndUser($username, $firstname, $middlename, $lastname, $birthday, $sex, $email, $password, $contact, $designation);
-									$_SESSION['successMessage'] = "New end user record added successfully!";
-									header("Location: end-user.php");
+									$model->createSubAdmin($username, $firstname, $middlename, $lastname, $sex, $password, $contact, $designation);
+									$_SESSION['successMessage'] = "New sub admin record added successfully!";
+									header("Location: sub-admin.php");
 									exit();
 								}
 							}
 
 							if (isset($_POST['update-status'])) {
-								$endUser_id = $_POST['endUser_id'];
+								$subAdmin_id = $_POST['subAdmin_id'];
 							
-								$old_values = $model->getEndUserDetailByID($endUser_id);
+								$old_values = $model->getSubAdminByID($subAdmin_id);
 								$old_status = $old_values['status'];
+							
 							
 								if ($old_status == '1') {
 									$new_status = '0';
@@ -569,36 +455,43 @@
 									$new_status = '1';
 								}
 							
-								$updateUserStatus = $model->updateEndUserStatus($new_status, $endUser_id);
+								$updateUserStatus = $model->updateSubAdminStatus($new_status, $subAdmin_id);
 							
-								$_SESSION['successMessage'] = "End user status updated successfully!";
-								header("Location: end-user.php");
+								$_SESSION['successMessage'] = "User status updated successfully!";
+								header("Location: sub-admin.php");
 								exit();
 							
 							}
 							
 
 							/* Update End user record controller */
-							if (isset($_POST['update-endUser'])) {
-								$endUser_id = $_POST['endUser_id'];
+							if (isset($_POST['update-subAdmin'])) {
+								$subAdmin_id = $_POST['subAdmin_id'];
 								$username = $_POST['username'];
-								$firstName = $_POST['firstname'];
-								$middleName = $_POST['middleName'];
-								$lastName = $_POST['lastName'];
-								$birthday = $_POST['birthday'];
+								$firstname = $_POST['firstname'];
+								$middlename = $_POST['middlename'];
+								$lastname = $_POST['lastname'];
 								$sex = $_POST['sex'];
-								$email = $_POST['email'];
 								$contact = $_POST['contact'];
 								$designation = $_POST['designation'];
 
-								$old_values = $model->getEndUserDetailByID($endUser_id);
+								$old_values = $model->getSubAdminByID($subAdmin_id);
 
-								$updateRecord = $model->updateEndUser($username, $firstName, $middleName, $lastName, $birthday, $sex, $email, $contact, $designation, $endUser_id);
-								$logRecord = $model->logEndUserUpdateTransaction($old_values, $_POST);
+								// Check if username already exists
+								if ($model->usernameExists($username)) {
 
-								$_SESSION['successMessage'] = "End user record updated successfully!";
-								header("Location: end-user.php");
-								exit();
+									$_SESSION['errorMessage'] = "Username already exist!";
+									header("Location: sub-admin.php");
+									exit();
+								} else {
+
+									$updateRecord = $model->updateSubAdmin($username, $firstname, $middlename, $lastname, $sex,$contact, $designation, $subAdmin_id);
+									$logRecord = $model->logEndSubAdminUpdateTransaction($old_values, $_POST);
+									
+									$_SESSION['successMessage'] = "Sub admin record updated successfully!";
+									header("Location: sub-admin.php");
+									exit();
+								}
 							}
 
 							/* Reset user password controller */
@@ -608,7 +501,7 @@
 								$model->resetUserPassword($user_id);
 
 								$_SESSION['successMessage'] = "Password reset to default successfully!";
-								header("Location: end-user.php");
+								header("Location: sub-admin.php");
 								exit();
 
 							}

@@ -68,14 +68,21 @@
 						<span class="ttr-label">Report</span>
 					</a>
 				</li>
+				<?php if($userInfo['role_id'] == 1): ?>
 				<li style="padding-left: 20px; padding-top: 40px; padding-bottom: 5px; margin-top: 0px; margin-bottom: 0px;">
 					<span class="ttr-label" style="color: #D5D6D8; font-weight: 500;">Admin Settings</span>
+				</li>
+				<li class="" style="margin-top: 0px;">
+					<a href="sub-admin" class="ttr-material-button">
+						<span class="ttr-icon"><i class="fa fa-address-book" aria-hidden="true"></i></span>
+						<span class="ttr-label">Sub Admin</span>
+					</a>
 				</li>
 				<li class="" style="margin-top: 0px;">
 					<div class="accordion accordion-flush" id="accordionSettings">
 						<div class="accordion-item">
 							<h2 class="accordion-header">
-							<button class="accordion-button ps-3.5 py-1 collapsed" style="text-color: #FFFFFF; color: #FFFFFF;" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSettings" aria-expanded="true" aria-controls="collapseSettings" ><i class="fa fa-solid fa-gear me-2 pe-3" aria-hidden="true"></i>
+							<button class="accordion-button ps-3.5 py-1 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSettings" aria-expanded="true" aria-controls="collapseSettings" ><i class="fa fa-solid fa-gear me-2 pe-3" aria-hidden="true"></i>
 							Settings
 							</button>
 							</h2>
@@ -108,6 +115,14 @@
 						<span class="ttr-label">Archives</span>
 					</a>
 				</li>
+				<?php else: ?>
+				<li class="" style="margin-top: 0px;">
+					<a href="history" class="ttr-material-button">
+						<span class="ttr-icon"><i class="fa fa-history" aria-hidden="true"></i></span>
+						<span class="ttr-label">Activity Logs</span>
+					</a>
+				</li>
+				<?php endif; ?>
 			</ul>
 		</nav>
 	</div>
@@ -122,11 +137,13 @@
                     <!-- Header aligned to the left -->
                     <h2 class="p-0 mb-0">Location</h2>
 
+					<?php if($userInfo['role_id'] == 1): ?>
                     <!-- Button aligned to the right -->
                     <button type="button" class="btn green radius-xl" style="background-color: #5ADA86;" data-toggle="modal" data-target="#insert-location">
                         <i class="fa fa-plus"></i>
                         <span class="d-none d-lg-inline">&nbsp;&nbsp;ADD LOCATION</span>
                     </button>
+					<?php endif; ?>
                 </div>
             </div>
         </div>
@@ -193,7 +210,11 @@
 										<th class="col-1">#</th>
 										<th>Location Name</th>
 										<th class="col-2">Inventory Count</th>
-										<th class="col-sm-1 col-md-2 text-center">Action</th>
+										<?php if($userInfo['role_id'] == 1): ?>
+											<th class="col-sm-1 col-md-2 text-center">Action</th>
+										<?php else: ?>
+											<th class="col-1 text-center">Action</th>
+										<?php endif; ?>
 									</tr>
 								</thead>
 								<tbody>
@@ -207,6 +228,7 @@
 
 											<td>
 												<center>
+												<?php if($userInfo['role_id'] == 1): ?>
 													<button class="btn green mb-1" id="<?php echo $location_id;?>" onclick="window.location.href='location-view.php?id=<?php echo $location_id;?>'" type="submit" name="view"  style="width: 50px; height: 37px;">
 														<span data-toggle="tooltip">
 															<i class="ti-search" style="font-size: 12px;"></i>
@@ -222,6 +244,13 @@
 															<i class="ti-archive" style="font-size: 12px;"></i>
 														</span>
 													</button>
+												<?php else: ?>
+													<button class="btn green mb-1" id="<?php echo $location_id;?>" onclick="window.location.href='location-view.php?id=<?php echo $location_id;?>'" type="submit" name="view"  style="width: 50px; height: 37px;">
+														<span data-toggle="tooltip">
+															<i class="ti-search" style="font-size: 12px;"></i>
+														</span>
+													</button>
+												<?php endif; ?>
 												</center>
 											</td>
 										</tr>

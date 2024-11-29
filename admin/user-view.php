@@ -73,14 +73,21 @@
 						<span class="ttr-label">Report</span>
 					</a>
 				</li>
+				<?php if($userInfo['role_id'] == 1): ?>
 				<li style="padding-left: 20px; padding-top: 40px; padding-bottom: 5px; margin-top: 0px; margin-bottom: 0px;">
 					<span class="ttr-label" style="color: #D5D6D8; font-weight: 500;">Admin Settings</span>
+				</li>
+				<li class="" style="margin-top: 0px;">
+					<a href="sub-admin" class="ttr-material-button">
+						<span class="ttr-icon"><i class="fa fa-address-book" aria-hidden="true"></i></span>
+						<span class="ttr-label">Sub Admin</span>
+					</a>
 				</li>
 				<li class="" style="margin-top: 0px;">
 					<div class="accordion accordion-flush" id="accordionSettings">
 						<div class="accordion-item">
 							<h2 class="accordion-header">
-							<button class="accordion-button ps-3.5 py-1 collapsed" style="text-color: #FFFFFF; color: #FFFFFF;" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSettings" aria-expanded="true" aria-controls="collapseSettings" ><i class="fa fa-solid fa-gear me-2 pe-3" aria-hidden="true"></i>
+							<button class="accordion-button ps-3.5 py-1 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSettings" aria-expanded="true" aria-controls="collapseSettings" ><i class="fa fa-solid fa-gear me-2 pe-3" aria-hidden="true"></i>
 							Settings
 							</button>
 							</h2>
@@ -113,6 +120,14 @@
 						<span class="ttr-label">Archives</span>
 					</a>
 				</li>
+				<?php else: ?>
+				<li class="" style="margin-top: 0px;">
+					<a href="history" class="ttr-material-button">
+						<span class="ttr-icon"><i class="fa fa-history" aria-hidden="true"></i></span>
+						<span class="ttr-label">Activity Logs</span>
+					</a>
+				</li>
+				<?php endif; ?>
 			</ul>
 		</nav>
 	</div>
@@ -129,55 +144,42 @@
 				<div class="row">
 					<div class="widget-box ">
 						<div class="widget-inner">
+							
+							<!-- Alert notification -->
+							<?php if (!empty($successMessage)): ?>
+								<div class="alert alert-success alert-dismissible fade show" role="alert">
+									<?php echo htmlspecialchars($successMessage); ?>
+									<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+										<span aria-hidden="true">&times;</span>
+									</button>
+								</div>
+							<?php endif; ?>
+
+							<?php if (!empty($errorMessage)): ?>
+								<div class="alert alert-danger alert-dismissible fade show" role="alert">
+									<?php echo htmlspecialchars($errorMessage); ?>
+									<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+										<span aria-hidden="true">&times;</span>
+									</button>
+								</div>
+							<?php endif; ?> <!-- Alert notification -->
 
 							<div class="profile-content row col-6">
 
 								<h3><?php echo $user['username']; ?></h3>
 
-								<!-- account table 
-								<div class="account-table my-3 px-0">	
-									<table class="table table-borderless">
-										<tr>
-											<th class="col-3" scope="col">First name:</th>
-											<td class="text-start"><?php echo $user['first_name']; ?></td>
-										</tr>
-										<tr>
-											<th class="col-3" scope="col">Middle name:</th>
-											<td class="text-start"><?php echo $user['middle_name']; ?></td>
-										</tr>
-										<tr>
-											<th class="col-3" scope="col">Last name:</th>
-											<td class="text-start"><?php echo $user['last_name']; ?></td>
-										</tr>
-										<tr>
-											<th class="col-3" scope="col">Sex:</th>
-											<td class="text-start"><?php if ($user['sex'] == '') { echo ''; } else { echo $user['sex']; }?></td>
-										</tr>
-										<tr>
-											<th class="col-3" scope="col">Birthday:</th>
-											<td class="text-start"><?php if ($user['birthday'] == '0000-00-00') { echo ''; } else { echo date('F d, Y', strtotime($user['birthday'])); } ?></td>
-										</tr>
-										<tr>
-											<th class="col-3" scope="col">Contact: </th>
-											<td class="text-start"><span>+63</span><?php if ($user['contact'] == '0') { echo ''; } else { echo $user['contact']; }?></td>
-										</tr>
-										<tr>
-											<th class="col-3" scope="col">Email:</th>
-											<td class="text-start"><?php if (!empty($user['email'])) { echo $user['email']; }?></td>
-										</tr>	
-									</table>
-								</div> account table -->
+						
 
 								<!-- Profile Page -->
 								<div class="float-left">
 
-									<!-- Edit Profile button 
+									<!-- Edit Profile button -->
 									<div class="float-left my-1">
 										<button type="button" class="btn blue radius-xl" data-toggle="modal" data-target="#update-user-<?php echo $user_id; ?>">
 											<i class="ti-marker-alt" title="Edit"></i>
 											<span data-toggle="tooltip">&nbsp;&nbsp;Edit Profile</span>
 										</button>
-									</div> Edit Profile button -->
+									</div> <!-- Edit Profile button --> 
 
 									<!-- Reset Password button -->
 									<div class="float-left mx-1 my-1">
@@ -200,10 +202,10 @@
 								<!-- update user info modal -->
 								<div id="update-user-<?php echo $user_id; ?>" class="modal fade" role="dialog">
 									<form class="edit-info m-b30" method="POST" enctype="multipart/form-data">
-										<div class="modal-dialog modal-lg">
+										<div class="modal-dialog modal-md">
 											<div class="modal-content">
 												<div class="modal-header">
-													<h4 class="modal-title">Update Record</h4>
+													<h4 class="modal-title">Update Username</h4>
 													<button type="button" class="close" data-dismiss="modal">&times;</button>
 												</div>
 												<div class="modal-body">
@@ -211,41 +213,9 @@
 														<input type="hidden" name="user_id" value="<?php echo $user_id ?>">
 														<div class="form-group col-12" style="padding-bottom: 15px;">
 															<div class="row">
-																<div class="form-group col-4">
-																	<label class="col-form-label">First name</label>
-																	<input class="form-control" type="text" name="firstname" value="<?php echo $user['first_name']; ?>" placeholder="Enter first name" maxlength="15" required>
-																</div>
-																<div class="form-group col-4">
-																	<label class="col-form-label">Middle name</label>
-																	<input class="form-control" type="text" name="middlename" value="<?php echo $user['middle_name']; ?>"  placeholder="Enter middle name" maxlength="20" required>
-																</div>
-																<div class="form-group col-4">
-																	<label class="col-form-label">Last name</label>
-																	<input class="form-control" type="text" name="lastname" value="<?php echo $user['last_name']; ?>"  placeholder="Enter last name" maxlength="20" required>
-																</div>
 																<div class="form-group col-12">
 																	<label class="col-form-label">Username</label>
 																	<input class="form-control" type="text" name="username" value="<?php echo $user['username']; ?>" required>
-																</div>
-																<div class="form-group col-8">
-																	<label class="col-form-label">Birthday</label>
-																	<input class="form-control" type="date" name="birthday" value="<?php echo $user['birthday']; ?>">
-																</div>
-																<div class="form-group col-4">
-																	<label class="col-form-label">Sex</label>
-																	<select name="sex" id="sex">
-																		<option value="<?php echo $user['sex']; ?>" selected hidden>-- Select sex --</option>
-																		<option value="Male">Male</option>
-																		<option value="Female">Female</option>
-																	</select>
-																</div>
-																<div class="form-group col-6">
-																	<label class="col-form-label">Phone Number</label>
-																	<input class="form-control" type="tel" name="contact" placeholder="0912-34-5678" value="<?php if ($user['contact'] == '0') { echo ''; } else { echo $user['contact']; }?>">
-																</div>
-																<div class="form-group col-6">
-																	<label class="col-form-label">Email</label>
-																	<input class="form-control" type="email" name="email" placeholder="example: email@gmail.com" value="<?php echo $user['email']; ?>">
 																</div>
 															</div>
 														</div>
@@ -347,17 +317,20 @@
 								if (isset($_POST['update-user'])) {
 									$user_id = $_POST['user_id'];
 									$username = $_POST['username'];
-									$firstname = $_POST['firstname'];
-									$middlename = $_POST['middlename'];
-									$lastname = $_POST['lastname'];
-									$sex = $_POST['sex'];
-									$birthday = $_POST['birthday'];
-									$contact = $_POST['contact'];
-									$email = $_POST['email'];
 
-									$model->updateUserInfo($username, $firstname, $middlename, $lastname, $sex, $birthday, $contact, $email, $user_id);
+									// Check if username already exists
+									if ($model->usernameExists($username)) {
 
-									echo "<script>alert('User has been updated!');window.open('user-view?id=$user_id', '_self')</script>";
+										$_SESSION['errorMessage'] = "Username already exist!";
+										header("Location: user-view.php?id=$user_id");
+										exit();
+									} else {
+										$model->updateUserUsername($username, $user_id);
+
+										$_SESSION['successMessage'] = "Username updated successfully!";
+										header("Location: user-view.php?id=$user_id");
+										exit();
+									}
 								}
 
 								/* Reset user password controller */
@@ -366,7 +339,7 @@
 
 									$model->resetUserPassword($user_id);
 
-									echo "<script>alert('Password has been reset to default!');window.open('user-view?id=$user_id', '_self')</script>";
+									echo "<script>alert('Password has been reset successfully. Please log out and log back in to apply changes.');window.open('logout.php', '_self')</script>";
 
 								}
 
@@ -382,7 +355,7 @@
 										if (password_verify($old_password, $verifyPassword['password'])) {
 		
 											$model->updateUserPassword($user_id, $new_password);
-											echo "<script>alert('Password has been changed successfully!');window.open('user-view?id=$user_id', '_self')</script>";
+											echo "<script>alert('Password has been changed successfully. Please log out and log back in to apply changes.');window.open('logout.php', '_self')</script>";
 										} else {
 											echo "<script>alert('Old password does not match.');window.open('user-view?id=$user_id', '_self')</script>";
 										}

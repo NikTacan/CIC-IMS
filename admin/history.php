@@ -63,14 +63,21 @@
 						<span class="ttr-label">Report</span>
 					</a>
 				</li>
+				<?php if($userInfo['role_id'] == 1): ?>
 				<li style="padding-left: 20px; padding-top: 40px; padding-bottom: 5px; margin-top: 0px; margin-bottom: 0px;">
 					<span class="ttr-label" style="color: #D5D6D8; font-weight: 500;">Admin Settings</span>
+				</li>
+				<li class="" style="margin-top: 0px;">
+					<a href="sub-admin" class="ttr-material-button">
+						<span class="ttr-icon"><i class="fa fa-address-book" aria-hidden="true"></i></span>
+						<span class="ttr-label">Sub Admin</span>
+					</a>
 				</li>
 				<li class="" style="margin-top: 0px;">
 					<div class="accordion accordion-flush" id="accordionSettings">
 						<div class="accordion-item">
 							<h2 class="accordion-header">
-							<button class="accordion-button ps-3.5 py-1 collapsed" style="text-color: #FFFFFF; color: #FFFFFF;" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSettings" aria-expanded="true" aria-controls="collapseSettings" ><i class="fa fa-solid fa-gear me-2 pe-3" aria-hidden="true"></i>
+							<button class="accordion-button ps-3.5 py-1 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSettings" aria-expanded="true" aria-controls="collapseSettings" ><i class="fa fa-solid fa-gear me-2 pe-3" aria-hidden="true"></i>
 							Settings
 							</button>
 							</h2>
@@ -91,7 +98,7 @@
 						</div>
 					</div>
 				</li>
-				<li class="show" style="margin-top: 0px;">
+				<li class="" style="margin-top: 0px;">
 					<a href="history" class="ttr-material-button">
 						<span class="ttr-icon"><i class="fa fa-history" aria-hidden="true"></i></span>
 						<span class="ttr-label">Activity Logs</span>
@@ -103,6 +110,14 @@
 						<span class="ttr-label">Archives</span>
 					</a>
 				</li>
+				<?php else: ?>
+				<li class="show" style="margin-top: 0px;">
+					<a href="history" class="ttr-material-button">
+						<span class="ttr-icon"><i class="fa fa-history" aria-hidden="true"></i></span>
+						<span class="ttr-label">Activity Logs</span>
+					</a>
+				</li>
+				<?php endif; ?>
 			</ul>
 		</nav>
 	</div>
@@ -135,29 +150,16 @@
 								</button>
 							</div>
 						<?php endif; ?>
-
-						<form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post" id="deleteLogs">
-							<div class="row float-right">
-								<div class="col float-right">
-									<button type="submit" class="btn red" name="deleteRows" id="deleteButton" style="display: none;">
-										Delete Selected
-									</button>
-								</div>
-							</div>
-							<br><br>
-		
-							<div class="table-reponsive">	
-								<table id="table" class="table" style="width:100%">
+						<div class="table-reponsive">	
+								<table id="table" class="table hover" style="width:100%">
 									<thead>
 										<tr>
-											<th class="text-center"><input type="checkbox" name="logs-master-checkbox"></th>
 											<th class="col-8">Activity</th>
 											<th >Date & Time</th>
 											<th class="col-1">Action</th>
 										</tr>
 									</thead>
 									<tbody>
-
 										<?php if (!empty($logs = $model->displayHistoryLog())): ?>
 											<?php foreach ($logs as $log): ?>
 												<?php 	
@@ -168,7 +170,6 @@
 												?>
 
 												<tr>
-													<td class="text-center"><input class="me-3" type="checkbox" name="delete[]" value="<?php echo $log['id']; ?>"></td>
 													<td>
 														<span class="text-bold">
 															<?php echo mb_strimwidth($log['description'], 0, 40, '...'); ?>
@@ -179,11 +180,14 @@
 													
 													<!-- If module is inventory -->
 													<?php if($module == 'inventory'): ?>
-														<?php if($transaction_type == 'INSERT' || $transaction_type == 'UPDATE'): ?>
+														<?php if($transaction_type == 'INSERT' || $transaction_type == 'UPDATE' || $transaction_type == 'RETURNED'): ?>
+															
 															<td class="col-1">
-
-																<?php if($model->checkInvNoExist($item_no)): ?>
-																<a href="inventory-view.php?id=<?php echo $item_no; ?>" class="btn green mt-1" style="width: 50px; height: 37px;">
+																<?php if($model->checkPropertyNoExist($item_no)): ?>
+																	<?php
+																		$inv_detail = $model->getInventoryDetailByPropertyNo($item_no);
+																	?>
+																<a href="inventory-view.php?id=<?php echo $inv_detail['inv_id']; ?>" class="btn green mt-1" style="width: 50px; height: 37px;">
 																	<span data-toggle="tooltip">
 																		<i class="ti-search" style="font-size: 12px;"></i>
 																	</span>
@@ -195,7 +199,6 @@
 																	</span>
 																	</a>
 																<?php endif; ?>
-
 															</td>
 														<?php elseif($transaction_type == 'ARCHIVE' || $transaction_type == 'DELETE'): ?>
 															<td class="col-1">
@@ -211,14 +214,25 @@
 													
 													<!-- If module is Assignment -->
 													<?php elseif($module == 'assignment'): ?>
-														<?php if($transaction_type == 'INSERT'): ?>
-															<td class="col-1">
-																<a href="inventory-assignment" class="btn green mt-1" style="width: 50px; height: 37px;">
-																	<span data-toggle="tooltip">
-																		<i class="ti-search" style="font-size: 12px;"></i>
-																	</span>
-																</a>
-															</td>
+														<?php if($transaction_type == 'INSERT' ): ?>
+															<?php if(!empty($model->getAssignmentDetailById($item_no))): ?>
+																<td class="col-1">
+																	<a href="inventory-assignment-view.php?id=<?php echo $item_no ?>" class="btn green mt-1" style="width: 50px; height: 37px;">
+																		<span data-toggle="tooltip">
+																			<i class="ti-search" style="font-size: 12px;"></i>
+																		</span>
+																	</a>
+																</td>
+															<?php else: ?>
+																<td class="col-1">
+																	<a href="inventory-assignment" class="btn green mt-1" style="width: 50px; height: 37px;">
+																		<span data-toggle="tooltip">
+																			<i class="ti-search" style="font-size: 12px;"></i>
+																		</span>
+																	</a>
+																</td>
+															<?php endif; ?>
+															
 														<?php elseif($transaction_type == 'UPDATE'): ?>
 															<td class="col-1">
 																<a href="inventory-assignment-view.php?id=<?php echo $item_no ?>" class="btn green mt-1" style="width: 50px; height: 37px;">
@@ -242,8 +256,17 @@
 
 													<!-- If module is End User -->
 													<?php elseif($module == 'end_user'): ?>
+															<td class="col-1">
+																<a href="end-user" class="btn green mt-1" style="width: 50px; height: 37px;">
+																	<span data-toggle="tooltip">
+																		<i class="ti-search" style="font-size: 12px;"></i>
+																	</span>
+																</a>
+															</td> <!-- If module is End User -->
+																
+													<?php elseif($module == 'sub_admin'): ?>
 														<td class="col-1">
-															<a href="end-user" class="btn green mt-1" style="width: 50px; height: 37px;">
+															<a href="sub-admin" class="btn green mt-1" style="width: 50px; height: 37px;">
 																<span data-toggle="tooltip">
 																	<i class="ti-search" style="font-size: 12px;"></i>
 																</span>
@@ -311,29 +334,8 @@
 										
 									</tbody>
 								</table>
-							</div> <!-- table responsive end div -->
-						</form> <!-- Delete logs form -->
+						</div> <!-- table responsive end div -->
 								
-						<?php 
-						
-							if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['deleteRows']) && isset($_POST['delete'])) {
-								$ids = $_POST['delete'];
-
-								if (!empty($ids)) {
-									$model->deleteActivityLogs($ids);
-									$_SESSION['successMessage'] = "Activity log deleted successfully!";
-									header("Location: history.php");
-									exit();
-								} else {
-									$_SESSION['errorMessage'] = "No row(s) selected for deletion!";
-									header("Location: history.php");
-									exit();
-								}
-								ob_end_flush(); 
-
-							}
-
-						?>
 
 					</div> <!-- widget-inner -->		
 				</div> <!-- widget-box -->
@@ -344,36 +346,17 @@
 <div class="ttr-overlay"></div>
 
 	<?php include('../includes/layouts/main-layouts/scripts.php'); ?>
-	<?php include('../includes/js/data-tables.php'); ?>
-
-	<script>
-		document.addEventListener("DOMContentLoaded", function () {
-			const masterCheckbox = document.querySelector("input[name='logs-master-checkbox']");
-			const checkboxes = document.querySelectorAll("input[name='delete[]']");
-			const deleteButton = document.getElementById("deleteButton");
-
-			// Toggle all checkboxes when the master checkbox is clicked
-			masterCheckbox.addEventListener("change", function () {
-				checkboxes.forEach(checkbox => checkbox.checked = masterCheckbox.checked);
-				toggleDeleteButton();
+	
+	<script type="text/javascript">
+		$(document).ready(function() {
+			$('#table').DataTable({
+				order: [[1, 'desc']], // Sort by the 2nd column (Date & Time) in descending order
+				columnDefs: [
+					{ orderable: false, targets: 2 } // Disable sorting for the Action column
+				]
 			});
 
-			// Show delete button when at least one checkbox is selected
-			checkboxes.forEach(checkbox => {
-				checkbox.addEventListener("change", toggleDeleteButton);
-			});
-
-			function toggleDeleteButton() {
-				const anyChecked = Array.from(checkboxes).some(checkbox => checkbox.checked);
-				deleteButton.style.display = anyChecked ? "inline-block" : "none";
-			}
-
-			// Confirm deletion
-			deleteButton.addEventListener("click", function (event) {
-				if (!confirm("Are you sure you want to delete the selected logs?")) {
-					event.preventDefault();
-				}
-			});
+			$('[data-toggle="tooltip"]').tooltip();
 		});
 	</script>
 

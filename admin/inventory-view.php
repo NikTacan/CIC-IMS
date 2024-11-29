@@ -83,14 +83,21 @@
 						<span class="ttr-label">Report</span>
 					</a>
 				</li>
+				<?php if($userInfo['role_id'] == 1): ?>
 				<li style="padding-left: 20px; padding-top: 40px; padding-bottom: 5px; margin-top: 0px; margin-bottom: 0px;">
 					<span class="ttr-label" style="color: #D5D6D8; font-weight: 500;">Admin Settings</span>
+				</li>
+				<li class="" style="margin-top: 0px;">
+					<a href="sub-admin" class="ttr-material-button">
+						<span class="ttr-icon"><i class="fa fa-address-book" aria-hidden="true"></i></span>
+						<span class="ttr-label">Sub Admin</span>
+					</a>
 				</li>
 				<li class="" style="margin-top: 0px;">
 					<div class="accordion accordion-flush" id="accordionSettings">
 						<div class="accordion-item">
 							<h2 class="accordion-header">
-							<button class="accordion-button ps-3.5 py-1 collapsed" style="text-color: #FFFFFF; color: #FFFFFF;" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSettings" aria-expanded="true" aria-controls="collapseSettings" ><i class="fa fa-solid fa-gear me-2 pe-3" aria-hidden="true"></i>
+							<button class="accordion-button ps-3.5 py-1 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSettings" aria-expanded="true" aria-controls="collapseSettings" ><i class="fa fa-solid fa-gear me-2 pe-3" aria-hidden="true"></i>
 							Settings
 							</button>
 							</h2>
@@ -123,6 +130,14 @@
 						<span class="ttr-label">Archives</span>
 					</a>
 				</li>
+				<?php else: ?>
+				<li class="" style="margin-top: 0px;">
+					<a href="history" class="ttr-material-button">
+						<span class="ttr-icon"><i class="fa fa-history" aria-hidden="true"></i></span>
+						<span class="ttr-label">Activity Logs</span>
+					</a>
+				</li>
+				<?php endif; ?>
 			</ul>
 		</nav>
 	</div>
@@ -244,27 +259,6 @@
 														<td><?php echo date('M. d, Y g:i A', strtotime($assignment['date_added'])); ?></td>
 														<td>
 															<button onclick="window.location.href='inventory-assignment-view.php?id=<?php echo $assignment_id?>'" type="submit" name="view" class="btn green" style="width: 50px; height: 37px;">
-																<span data-toggle="tooltip">
-																	<i class="ti-search" style="font-size: 12px;"></i>
-																</span>
-															</button>
-														</td>	
-													</tr>
-													<?php endforeach; ?>
-												<?php endif; ?>
-
-												<?php if(!empty($transferRecord = $model->displayPropertyTransfer($InvIDDetail['property_no']))): ?>
-													<?php foreach ($transferRecord as $transfer): ?>
-													<?php $transfer_id = $transfer['transfer_id']; ?>
-													<tr>
-														<td><?php echo $transfer['username']; ?></td>
-														<td><?php echo $transfer['qty']; ?></td>
-														<td>
-															<span style="font-size: 10px; color: white; padding: 5px; border-radius: 25px; background-color: red;">Transferred</span>
-														</td>
-														<td><?php echo date('F d, Y', strtotime($transfer['date_transferred'])); ?></td>
-														<td>
-															<button onclick="window.location.href='inventory-assignment-transfer-view.php?id=<?php echo $transfer_id?>'" type="submit" name="view" class="btn green" style="width: 50px; height: 37px;">
 																<span data-toggle="tooltip">
 																	<i class="ti-search" style="font-size: 12px;"></i>
 																</span>

@@ -41,9 +41,7 @@
 				
 					<div style="padding-left: px; padding-top: 12px;">
 					<a href="user-view?id=<?php echo $account_id; ?>">
-						<!--<div class="image">
-							<img src="../assets/images/profile-img/default.jpg" alt="User" style="  width: 50px; height: 50px; border-radius: 50%;object-fit: cover;cover;border: 1px solid #E2E2E2;">
-						</div>-->
+						
 						<div class="mt-4" style="height: 8px;">
 						</div>
 						<div class="info-container">

@@ -131,23 +131,6 @@
 							<?php endforeach; ?>
 						<?php endif; ?> <!-- Inventory Assignment Inventory Items -->
 
-						<!-- Inventory Transferred Assignment Inventory Items -->
-						<?php if (!empty($inventories = $model->getAllEndUserTransferredAssignmentReport($fromDate ,$toDate))): ?>
-							<?php foreach ($inventories as $inventory): ?>
-								<?php if(!empty($inventory['property_no'])): ?>
-									<tr>
-										<td> <?php echo $inventory['new_end_user'] ?></td>
-										<td> <?php echo $inventory['property_no'] ?></td>
-										<td> <?php echo $inventory['description'] ?></td>
-										<td> <?php echo $inventory['qty'] ?></td>
-										<td> <?php echo $inventory['unit'] ?></td>
-										<td> <?php echo $inventory['unit_cost'] ?></td>
-										<td width="70"> <?php echo date('F d, Y', strtotime($inventory['date_transferred'])); ?></td>
-									</tr>
-								<?php endif; ?>
-							<?php endforeach; ?>
-						<?php endif; ?> <!-- Inventory Transferred Assignment Inventory Items -->
-						
 					</tbody>
 				</table> <br> 
 			</div> <!-- Table -->
@@ -214,23 +197,7 @@
 								<?php endif; ?>
 							<?php endforeach; ?>
 						<?php endif; ?> <!-- Inventory Assignment -->
-
-						<!--  Transferred Inventory Assignment -->
-						<?php if (!empty($transferredItems = $model->getEndUserTransferredAssignmentReport($end_user, $fromDate ,$toDate))): ?>
-							<?php foreach ($transferredItems as $transferredItem): ?>
-								<?php if(!empty($transferredItem['property_no'])): ?>
-									<tr>
-										<td> <?php echo $transferredItem['property_no'] ?></td>
-										<td> <?php echo $transferredItem['description'] ?></td>
-										<td> <?php echo $transferredItem['qty'] ?></td>
-										<td> <?php echo $transferredItem['unit'] ?></td>
-										<td> <?php echo $transferredItem['unit_cost'] ?></td>
-										<td> <?php echo date('F d, Y', strtotime($transferredItem['date_transferred'])); ?></td>
-									</tr>
-								<?php endif; ?>
-							<?php endforeach; ?>
-						<?php endif; ?> <!--  Transferred Inventory Assignment -->
-
+						
 					</tbody>
 				</table> <br> 
 			</div> <!-- Table -->
@@ -297,24 +264,7 @@
 								<?php endif; ?>
 							<?php endforeach; ?>
 						<?php endif; ?> <!-- Inventory assignment -->
-
-						<!-- Transferred inventory assignment -->
-						<?php if (!empty($transferredItems = $model->getAllTransferredInventoryAssignment())): ?>
-							<?php foreach ($transferredItems as $transferredItem): ?>
-								<?php if(!empty($transferredItem['property_no'])): ?>
-									<tr>
-										<td> <?php echo $transferredItem['new_end_user'] ?></td>
-										<td> <?php echo $transferredItem['property_no'] ?></td>
-										<td> <?php echo $transferredItem['description'] ?></td>
-										<td> <?php echo $transferredItem['qty'] ?></td>
-										<td> <?php echo $transferredItem['unit'] ?></td>
-										<td> <?php echo $transferredItem['unit_cost'] ?></td>
-										<td> <?php echo date('F d, Y', strtotime($transferredItem['date_transferred'])); ?></td>
-									</tr>
-								<?php endif; ?>
-							<?php endforeach; ?>
-						<?php endif; ?> <!-- Transferred inventory assignment -->
-
+					
 					</tbody> 
 				</table> <br> <!-- Overall inventory assignment of overall end users -->
 			</div>			
@@ -376,22 +326,6 @@
 								<?php endif; ?>
 							<?php endforeach; ?>
 						<?php endif; ?> <!-- Inventory assignment -->
-
-						<!-- Transferred Inventory assignment -->
-						<?php if(!empty($transferredItems = $model->getEndUserTransferredAssignment($end_user))): ?>
-							<?php foreach ($transferredItems as $transferredItem): ?>
-								<?php if(!empty($transferredItem['property_no'])): ?>
-									<tr>
-										<td> <?php echo $transferredItem['property_no'] ?></td>
-										<td> <?php echo $transferredItem['description'] ?></td>
-										<td> <?php echo $transferredItem['qty'] ?></td>
-										<td> <?php echo $transferredItem['unit'] ?></td>
-										<td> <?php echo $transferredItem['unit_cost'] ?></td>
-										<td> <?php echo date('F d, Y', strtotime($transferredItem['date_transferred'])); ?></td>
-									</tr>
-								<?php endif; ?>
-							<?php endforeach; ?>
-						<?php endif; ?> <!-- Transferred Inventory assignment -->
 
 					</tbody>
 				</table> <br> <!-- Table -->

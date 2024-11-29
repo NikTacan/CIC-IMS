@@ -7,8 +7,6 @@
 		$endUserDetail = $model->getEndUserDetailByID($endUserId);
 	
 		$assignedItems = $model->getEndUserAssignment($endUserId);
-		$assignedTransferredItems = $model->getEndUserTransferredAssignment($endUserId);
-
 	}
 ?>
 
@@ -75,14 +73,21 @@
 						<span class="ttr-label">Report</span>
 					</a>
 				</li>
+				<?php if($userInfo['role_id'] == 1): ?>
 				<li style="padding-left: 20px; padding-top: 40px; padding-bottom: 5px; margin-top: 0px; margin-bottom: 0px;">
 					<span class="ttr-label" style="color: #D5D6D8; font-weight: 500;">Admin Settings</span>
+				</li>
+				<li class="" style="margin-top: 0px;">
+					<a href="sub-admin" class="ttr-material-button">
+						<span class="ttr-icon"><i class="fa fa-address-book" aria-hidden="true"></i></span>
+						<span class="ttr-label">Sub Admin</span>
+					</a>
 				</li>
 				<li class="" style="margin-top: 0px;">
 					<div class="accordion accordion-flush" id="accordionSettings">
 						<div class="accordion-item">
 							<h2 class="accordion-header">
-							<button class="accordion-button ps-3.5 py-1 collapsed" style="text-color: #FFFFFF; color: #FFFFFF;" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSettings" aria-expanded="true" aria-controls="collapseSettings" ><i class="fa fa-solid fa-gear me-2 pe-3" aria-hidden="true"></i>
+							<button class="accordion-button ps-3.5 py-1 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSettings" aria-expanded="true" aria-controls="collapseSettings" ><i class="fa fa-solid fa-gear me-2 pe-3" aria-hidden="true"></i>
 							Settings
 							</button>
 							</h2>
@@ -115,6 +120,14 @@
 						<span class="ttr-label">Archives</span>
 					</a>
 				</li>
+				<?php else: ?>
+				<li class="" style="margin-top: 0px;">
+					<a href="history" class="ttr-material-button">
+						<span class="ttr-icon"><i class="fa fa-history" aria-hidden="true"></i></span>
+						<span class="ttr-label">Activity Logs</span>
+					</a>
+				</li>
+				<?php endif; ?>
 			</ul>
 		</nav>
 	</div>
@@ -136,7 +149,7 @@
 					<div class="widget-inner">
 						<div class="row" width="100%">
 							
-							<h2 class="text-center"><?php echo $endUserDetail['username']; ?><br>
+							<h2 class="text-center"><?php echo $endUserDetail['first_name'] . ' ' . $endUserDetail['last_name'] ; ?><br>
 								<span class="fw-light mt-0 pt-0" style="font-size: 21px;"><?php echo $endUserDetail['designation_name']; ?></span>
 							</h2>
 							<div class="mt-3"></div>	
@@ -190,42 +203,6 @@
 
 										<?php endforeach; ?>
 									<?php endif; ?> <!-- Inventory assignment record -->
-
-									<!-- Properties transferred to end user -->
-									<?php if(!empty($assignedTransferredItems)): ?>
-										<?php foreach ($assignedTransferredItems as $transferredItem): ?>
-											<?php $transfer_id = $transferredItem['transfer_id']; ?>
-											<tr>
-												<td><?php echo $transferredItem['property_no']; ?></td>
-												<td>
-													<?php
-														// Split the description into an array of words
-														$words = explode(' ', $transferredItem['description']);
-
-														// Display the first 5 words
-														echo implode(' ', array_slice($words, 0, 7));
-													?>
-												</td>
-												<td><span>Transferred</span></td>
-												<td><?php echo $transferredItem['qty']; ?></td>
-												<td><?php echo $transferredItem['unit']; ?></td>
-												<td><?php echo $transferredItem['unit_cost']; ?></td>
-												<td><?php echo $transferredItem['total_cost']; ?></td>
-												<td><?php echo date('F d, Y', strtotime($transferredItem['acquisition_date'])); ?></td>
-												<td><?php echo date('M. d, Y g:i A', strtotime($transferredItem['date_added'])); ?></td>
-												<td>
-													<center>
-														<button onclick="window.location.href='inventory-assignment-transfer-view.php?id=<?php echo $transfer_id; ?>'" type="submit" name="view" class="btn green" style="width: 50px; height: 37px;">
-															<span data-toggle="tooltip">
-																<i class="ti-search" style="font-size: 12px;"></i>
-															</span>
-														</button>
-												</center>
-												</td>
-											</tr>
-
-										<?php endforeach; ?> 
-									<?php endif; ?> <!-- Properties transferred to end user -->
 
 								</tbody>	
 							</table>

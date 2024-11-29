@@ -18,6 +18,12 @@
     $account_id = $_SESSION['sess'];
     $customize = $model->displayReportEdit();
     $theme_id = $customize['theme'];
-    $end_user_id = $model->getUserIdByUsername($session_name);
+    $userInfo = $model->getUserInfo($account_id);
+
+    if ($userInfo['role_id'] == 3) {
+        $endUserAllInfo = $model->getEndUserInfo($account_id);
+        $end_user_id = $endUserAllInfo['end_user_id'];
+    }
+    
     
 ?>

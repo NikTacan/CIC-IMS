@@ -910,6 +910,11 @@ h1, h2, h3, li {
 	padding: 50px;
     display: block; /* Makes the entire area clickable */
     padding: 2px; /* Add some padding */
+	outline: none;	
+}
+
+.event-link:focus {
+	outline: none; /* Ensure no outline on focus */
 }
 
 .event-link:hover {

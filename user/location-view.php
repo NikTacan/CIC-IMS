@@ -40,12 +40,6 @@
 						<span class="ttr-label">Assignment</span>
 					</a>
 				</li>
-				<li class="" style="margin-top: 0px;">
-					<a href="end-user" class="ttr-material-button">
-						<span class="ttr-icon"><i class="fa fa-address-book" aria-hidden="true"></i></span>
-						<span class="ttr-label">End Users</span>
-					</a>
-				</li>
 				<li class="show" style="margin-top: 0px;">
 					<a href="location" class="ttr-material-button">
 						<span class="ttr-icon"><i class="fa fa-map-marker" aria-hidden="true"></i></span>

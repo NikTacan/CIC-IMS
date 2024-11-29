@@ -8,7 +8,8 @@
 	$assignment_details = $model->getAssignmentDetailById($assignment_id);
 	$inventories = $model->getAllInventory();
 
-	$endUserName = $assignment_details['username'];
+	$endUsername = $assignment_details['username'];
+	$endUserId = $assignment_details['end_user_id'];
 	}
 ?>
 
@@ -79,6 +80,12 @@
 					<span class="ttr-label" style="color: #D5D6D8; font-weight: 500;">Admin Settings</span>
 				</li>
 				<li class="" style="margin-top: 0px;">
+					<a href="sub-admin" class="ttr-material-button">
+						<span class="ttr-icon"><i class="fa fa-address-book" aria-hidden="true"></i></span>
+						<span class="ttr-label">Sub Admin</span>
+					</a>
+				</li>
+				<li class="" style="margin-top: 0px;">
 					<div class="accordion accordion-flush" id="accordionSettings">
 						<div class="accordion-item">
 							<h2 class="accordion-header">
@@ -131,12 +138,11 @@
 		<div class="row">
 			<div class="col-lg-12 m-b30">
 				<div class="widget-box">
-					<div id="preloader"></div>
 					<div class="widget-inner">
 						<div class="row" width="100%">
 							<div class="form-group col-6">
 								<label class="col-form-label">Accountable End User</label>
-								<input class="form-control" name="end_user" value="<?php echo $endUserName; ?>" readonly>
+								<input class="form-control" name="end_user" value="<?php echo $endUsername ?>" readonly>
 							</div>
 							<div class="form-group col-6">
 								<label class="col-form-label">Date Added</label>
@@ -201,7 +207,8 @@
 
 								<div class="form-footer mt-4">
 									<input type="hidden" name="assignment_id" value="<?php echo $assignment_id; ?>">
-									<input type="hidden" name="endUserName" value="<?php echo $endUserName; ?>">
+									<input type="hidden" name="endUsername" value="<?php echo $endUsername; ?>">
+									<input type="hidden" name="endUserId" value="<?php echo $endUserId; ?>">
 									<button style="float: right;" id="close_add" name="close_add" class="btn red btn-sm btn-icon-split">
 										<span class="text">Cancel</span><span class="icon text-white-50"></span>
 									</button>
@@ -218,7 +225,8 @@
 								if (isset($_POST['save_edit'])) {
 									$selectedItems = isset($_POST['selected_items']) ? $_POST['selected_items'] : [];
 									$assignment_id = $_POST['assignment_id'];
-									$endUserName = $_POST['endUserName'];
+									$endUsername = $_POST['endUsername'];
+									$endUserId = $_POST['endUserId'];
 								
 									if (!empty($selectedItems)) {
 										foreach ($selectedItems as $inv_id) {
@@ -246,7 +254,7 @@
 								
 													if ($assignmentItemStatus > 0) {
 														// If the property exists, update the quantity
-														$model->updateAssignmentPropertyItem($location, $updated_qty, $total_cost, $assignment_id, $property_no, $endUserName, $description, $unit);
+														$model->updateAssignmentPropertyItem($location, $updated_qty, $total_cost, $assignment_id, $property_no, $endUsername, $description, $unit,$endUserId);
 								
 														// Update inventory Qty Physical Count in general inventory record
 														$model->updateInventoryQtyPcountAfterAssigned($updated_qtyPcount, $property_no);
@@ -256,7 +264,7 @@
 								
 													} else {
 														// If the asset does not exist, insert a new record
-														$model->insertAssignmentPropertyItem($assignment_id, $property_no, $description, $location, $unit, $updated_qty, $unit_cost, $total_cost, $acquisition_date, $endUserName);
+														$model->insertAssignmentPropertyItem($assignment_id, $property_no, $description, $location, $unit, $updated_qty, $unit_cost, $total_cost, $acquisition_date, $endUsername, $endUserId);
 														$model->updateInventoryQtyPcountAfterAssigned($updated_qtyPcount, $property_no);
 								
 														$_SESSION['successMessage'] = "Property item added successfully!";

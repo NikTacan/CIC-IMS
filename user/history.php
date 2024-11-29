@@ -59,62 +59,25 @@
 				<div class="widget-box">
 					<div class="widget-inner">
 
-						<form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post" id="deleteLogs">
-							<div class="row float-right">
-								<div class="col float-right">
-									<button type="submit" class="btn red" name="deleteRows" id="deleteButton" style="display: none;">
-										Delete Selected
-									</button>
-								</div>
-							</div>
-							<br><br>
-
-							<div class="row table-reponsive">	
-								<table id="table" class="table" style="width:100%">
+							<div class="table-reponsive">	
+								<table id="table" class="table hover" style="width:100%">
 									<thead>
 										<tr>
-											<th class="text-center"><input type="checkbox" name="logs-master-checkbox"></th>
-											<th class="col-8">Activity</th>
+											<th class="col-9">Activity</th>
 											<th >Date & Time</th>
-											<th class="col-1">Action</th>
 										</tr>
 									</thead>
 									<tbody>
-
-										<?php if (!empty($logs = $model->getHistoryLogByEndUser($session_name))): ?>
+										<?php if (!empty($logs = $model->getHistoryLogByEndUser($end_user_id))): ?>
 											<?php foreach ($logs as $log): ?>
-												<?php 	
-													$module = $log['module'];
-													$transaction_type = $log['transaction_type'];
-													$item_no = $log['item_no'];
-
-												?>
-
 												<tr>
-													<td class="text-center"><input class="me-3" type="checkbox" name="delete[]" value="<?php echo $log['id']; ?>"></td>
 													<td>
 														<span class="text-bold">
 															<?php echo mb_strimwidth($log['description'], 0, 40, '...'); ?>
 														</span>
 														<span class="text-normal"><?php echo $log['log_message']; ?></span>
 													</td>
-													<td><?php echo date('M d, Y g:i A', strtotime($log['date_time'])); ?></td>
-													
-													<!-- If module is Assignment -->
-													<?php if($module == 'assignment'): ?>
-														<?php if($transaction_type == 'INSERT'): ?>
-															<td class="col-1">
-																<a href="inventory-assignment" class="btn green mt-1" style="width: 50px; height: 37px;">
-																	<span data-toggle="tooltip">
-																		<i class="ti-search" style="font-size: 12px;"></i>
-																	</span>
-																</a>
-															</td>
-														<?php else: ?>
-															<td></td>
-														<?php endif; ?> <!-- If module is Assignment -->
-													<?php endif; ?>
-
+													<td><?php echo date('F d, Y   g:i A', strtotime($log['date_time'])); ?></td>
 												</tr>
 
 											<?php endforeach; ?>
@@ -123,24 +86,7 @@
 									</tbody>
 								</table>
 							</div> <!-- table responsive end div -->
-						</form> <!-- Delete logs form -->
 								
-						<?php 
-
-						
-							if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['deleteRows']) && isset($_POST['delete'])) {
-								$ids = $_POST['delete'];
-
-								if (!empty($ids)) {
-									$model->deleteActivityLogs($ids);
-									echo "<script>alert('Activity logs are deleted!');window.open('history', '_self')</script>";
-								} else {
-									echo "<script>alert('No rows selected for deletion!');</script>";
-								}
-								
-							}
-
-						?>
 
 					</div> <!-- widget-inner -->		
 				</div> <!-- widget-box -->
@@ -152,37 +98,6 @@
 
 	<?php include('../includes/layouts/main-layouts/scripts.php'); ?>
 	<?php include('../includes/js/data-tables.php'); ?>
-
-	<script>
-		document.addEventListener("DOMContentLoaded", function () {
-			const masterCheckbox = document.querySelector("input[name='logs-master-checkbox']");
-			const checkboxes = document.querySelectorAll("input[name='delete[]']");
-			const deleteButton = document.getElementById("deleteButton");
-
-			// Toggle all checkboxes when the master checkbox is clicked
-			masterCheckbox.addEventListener("change", function () {
-				checkboxes.forEach(checkbox => checkbox.checked = masterCheckbox.checked);
-				toggleDeleteButton();
-			});
-
-			// Show delete button when at least one checkbox is selected
-			checkboxes.forEach(checkbox => {
-				checkbox.addEventListener("change", toggleDeleteButton);
-			});
-
-			function toggleDeleteButton() {
-				const anyChecked = Array.from(checkboxes).some(checkbox => checkbox.checked);
-				deleteButton.style.display = anyChecked ? "inline-block" : "none";
-			}
-
-			// Confirm deletion
-			deleteButton.addEventListener("click", function (event) {
-				if (!confirm("Are you sure you want to delete the selected logs?")) {
-					event.preventDefault();
-				}
-			});
-		});
-	</script>
 
 </body>
 </html>

@@ -885,6 +885,7 @@ h1, h2, h3, li {
 .event-link {
     text-decoration: none; /* Remove underline */
     color: inherit; /* Inherit color from parent */
+	outline: none;
     display: block; /* Makes the entire area clickable */
     padding: 2px; /* Add some padding */
 }
@@ -908,6 +909,11 @@ h1, h2, h3, li {
 	padding: 50px;
     display: block; /* Makes the entire area clickable */
     padding: 2px; /* Add some padding */
+	outline: none;
+}
+
+.event-link:focus {
+	outline: none; /* Ensure no outline on focus */
 }
 
 .event-link:hover {
@@ -979,3 +985,4 @@ SELECT 2 (inventory-assignment.php)
 	position: relative;
 	margin-left: 10px;
 }
+

@@ -22,8 +22,6 @@ if (isset($_POST['report-excel-assignment-all-all'])) {
     $session_name = $_POST['session_name']; // Session name
 
     $assignmentItems = $model->getAllInventoryAssignment();
-    $transferredItems = $model->getAllTransferredInventoryAssignment();
-
 
 	$date_now = date("Y-m-d");
 
@@ -107,7 +105,7 @@ if (isset($_POST['report-excel-assignment-all-all'])) {
     ]);
 
 
-    if (!empty($assignmentItems || $transferredItems)) {
+    if (!empty($assignmentItems)) {
         $rowIndex = 13; // Start from the 13 row
         
         foreach ($assignmentItems as $assignmentItem) {
@@ -147,48 +145,9 @@ if (isset($_POST['report-excel-assignment-all-all'])) {
                 $rowIndex++;
             }
         }
-
-        /* Transferred inventory assignment */
-        foreach ($transferredItems as $transferredItem) {
-			if(!empty($transferredItem['property_no'])) {
-                
-                // Insert data into spreadsheet cells
-                $sheet->setCellValue('B' . $rowIndex, $transferredItem['new_end_user']);
-                $sheet->setCellValue('C' . $rowIndex, $transferredItem['description']);
-                $sheet->setCellValue('D' . $rowIndex, $transferredItem['property_no']);
-                $sheet->setCellValue('E' . $rowIndex, $transferredItem['qty']);
-                $sheet->setCellValue('F' . $rowIndex, $transferredItem['unit']);
-                $sheet->setCellValue('G' . $rowIndex, $transferredItem['unit_cost']);
-                $sheet->setCellValue('H' . $rowIndex, $transferredItem['total_cost']);
-                $sheet->setCellValue('I' . $rowIndex, date('F d, Y', strtotime($transferredItem['acquisition_date'])));
-                $sheet->setCellValue('J' . $rowIndex, date('F d, Y', strtotime($transferredItem['date_transferred'])));
-            
-
-                $sheet->getStyle('B' . $rowIndex . ':J' . $rowIndex)->getAlignment()
-                    ->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER)
-                    ->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
-
-                // Apply borders to each cell in the range
-                $columns = ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
-                foreach ($columns as $column) {
-                    $sheet->getStyle($column . $rowIndex)->applyFromArray([
-                        'borders' => [
-                            'left' => [
-                                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                            ],
-                            'right' => [
-                                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
-                            ],
-                        ],
-                    ]);
-                }
-
-                $rowIndex++;
-            }
-        }
     } 
 
-    if (!empty($assignmentItems || $transferredItems)) {
+    if (!empty($assignmentItems)) {
 
         // Add content below "Printed by:"
         $rowIndex--; // Increment rowIndex to move to the next row

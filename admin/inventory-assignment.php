@@ -4,16 +4,12 @@
 <?php
 
 	$assignments = $model->getInventoryAssignment();
-	$assignmentTransferred = $model->getInventoryAssignmentTransferred();
 	$notes = $model->displayModuleNotes('assignment');
 	$endUsers = $model->getEndUser(); 
 	$inventories = $model->getAllInventory();
 
 	// Retrieve the sum of quantity for the specified assignment_id
 	$assignment_id = isset($_GET['assignment_id']) ? intval($_GET['assignment_id']) : null;
-
-	$transferredAssignment = isset($_GET['transfer_id']) ? intval($_GET['transfer_id']) : null;
-
 ?>
 
 <?php include('../includes/layouts/main-layouts/html-head.php') ?>
@@ -80,8 +76,15 @@
 						<span class="ttr-label">Report</span>
 					</a>
 				</li>
+				<?php if($userInfo['role_id'] == 1): ?>
 				<li style="padding-left: 20px; padding-top: 40px; padding-bottom: 5px; margin-top: 0px; margin-bottom: 0px;">
 					<span class="ttr-label" style="color: #D5D6D8; font-weight: 500;">Admin Settings</span>
+				</li>
+				<li class="" style="margin-top: 0px;">
+					<a href="sub-admin" class="ttr-material-button">
+						<span class="ttr-icon"><i class="fa fa-address-book" aria-hidden="true"></i></span>
+						<span class="ttr-label">Sub Admin</span>
+					</a>
 				</li>
 				<li class="" style="margin-top: 0px;">
 					<div class="accordion accordion-flush" id="accordionSettings">
@@ -120,6 +123,14 @@
 						<span class="ttr-label">Archives</span>
 					</a>
 				</li>
+				<?php else: ?>
+				<li class="" style="margin-top: 0px;">
+					<a href="history" class="ttr-material-button">
+						<span class="ttr-icon"><i class="fa fa-history" aria-hidden="true"></i></span>
+						<span class="ttr-label">Activity Logs</span>
+					</a>
+				</li>
+				<?php endif; ?>
 			</ul>
 		</nav>
 	</div>
@@ -134,11 +145,13 @@
                     <!-- Header aligned to the left -->
                     <h2 class="p-0 mb-0">Inventory Assignment</h2>
 
+					<?php if($userInfo['role_id'] == 1): ?>
                     <!-- Button aligned to the right -->
                     <button type="button" class="btn green radius-xl" style="background-color: #5ADA86;" data-toggle="modal" data-target="#insert-assignment">
                         <i class="fa fa-plus"></i>
                         <span class="d-none d-lg-inline">&nbsp;&nbsp;ADD ASSIGNMENT</span>
                     </button>
+					<?php endif; ?>
                 </div>
             </div>
         </div>
@@ -210,11 +223,15 @@
 							<table id="table" class="table hover" style="width:100%">
 								<thead>
 									<tr>
-										<th class="col-2">End User</th>
-										<th class="col-1">Assigned items</th>
+										<th class="col-4">End User</th>
+										<th class="col-2">Inventory Count</th>
 										<th class="col-1">Status</th>
 										<th class="col-2">Date Added</th>
-										<th class="col-sm-1 col-lg-1">Action</th>
+										<?php if($userInfo['role_id'] == 1): ?>
+											<th class="col-sm-1 col-lg-1">Action</th>
+										<?php else: ?>
+											<th class="col-1">Action</th>
+										<?php endif; ?>
 									</tr>
 								</thead>
 								<tbody>
@@ -225,7 +242,7 @@
 												$totalQty = $model->getAssignmentTotalQty($assignment_id);
 											?>
 										<tr>
-											<td><?php echo $assignment['username']; ?></td>
+											<td><?php echo $assignment['first_name'] . ' ' . $assignment['last_name']; ?></td>
 											<td><?php echo $totalQty; ?></td>
 											<td>	
 												<span style="font-size: 13px; color: white; padding: 5px; border-radius: 25px; background-color: green;">Assigned</span>		
@@ -233,6 +250,7 @@
 											<td><?php echo date('F d, Y g:i A', strtotime($assignment['date_added'])); ?></td>
 											<td>
 												<center>
+												<?php if($userInfo['role_id'] == 1): ?>
 													<button id="<?php echo $assignment_id; ?>" onclick="window.location.href='inventory-assignment-view.php?id=<?php echo $assignment_id ?>'" type="submit" name="view" class="btn green mt-1" style="width: 50px; height: 37px;">
 														<span data-toggle="tooltip" title="View">
 															<i class="ti-search" style="font-size: 12px;"></i>
@@ -249,6 +267,13 @@
 															<i class="ti-archive" style="font-size: 12px;"></i>
 														</span>
 													</button>
+												<?php else: ?>
+													<button id="<?php echo $assignment_id; ?>" onclick="window.location.href='inventory-assignment-view.php?id=<?php echo $assignment_id ?>'" type="submit" name="view" class="btn green mt-1" style="width: 50px; height: 37px;">
+														<span data-toggle="tooltip" title="View">
+															<i class="ti-search" style="font-size: 12px;"></i>
+														</span>
+													</button>
+												<?php endif; ?>
 												</center>
 											</td>
 										</tr>
@@ -288,77 +313,6 @@
 											</form>
 										</div><!-- Archice assignment record modal -->
 
-										<?php endforeach; ?>
-									<?php endif; ?>
-									
-									<!-- Inventory Assignment trasferred -->
-									<?php if (!empty($assignmentTransferred)): ?>
-										<?php foreach ($assignmentTransferred as $transferredAssignment): ?>
-										<?php $transfer_id = $transferredAssuiignment['transfer_id']; 
-										$totalQtytransfer = $model->getTransferTotalQty($transfer_id) ;?>
-										<tr>
-											<td><?php echo $transferredAssignment['new_username']; ?></td>
-											<td><?php echo $model->getAssignmentTransQty($transferredAssignment['transfer_id']); ?></td>
-											<td>
-												<span style="font-size: 11px; color: white; padding: 4px; border-radius: 25px; background-color: red";>Transferred</span>
-											</td>
-											<td><?php echo date('F d, Y g:i A', strtotime($transferredAssignment['date_added'])); ?></td>
-
-											<?php if(canReadAssignment() || canDeleteAssignment()): ?>
-											<td>
-												<center>
-													<?php if(canReadAssignment()): ?>
-													<button id="<?php echo $transfer_id;?>" onclick="window.location.href='inventory-assignment-transfer-view.php?id=<?php echo $transfer_id?>'" type="submit" name="view" class="btn green mt-1" style="width: 50px; height: 37px;">
-														<span data-toggle="tooltip" title="View">
-															<i class="ti-search" style="font-size: 12px;"></i>
-														</span>
-													</button>
-													<?php endif; ?>
-													<?php if(canDeleteAssignment()): ?>
-													<button data-toggle="modal" data-target="#archive-invetassignment<?php echo $transfer_id; ?>" class="btn red mt-1" style="width: 50px; height: 37px;">
-													<?php if ($totalQtytransfer > 0) echo 'disabled'; ?>
-														<span data-toggle="tooltip" title="Archive">
-															<i class="ti-archive" style="font-size: 12px;"></i>
-														</span>
-													</button>
-													<?php endif; ?>
-												</center>
-
-											</td>
-											<?php endif; ?>
-										</tr>
-
-										<!-- Archice Assignment record modal -->
-										<div id="archive-transferedassignment<?php echo $transfer_id; ?>" class="modal fade" role="dialog">
-											<form class="archive-transferedassignment m-b30" method="POST">
-												<div class="modal-dialog modal-md">
-													<div class="modal-content">
-														<div class="modal-header">
-															<h4 class="modal-title">Archive Record</h4>
-															<button type="button" class="close" data-dismiss="modal">&times;</button>
-														</div>
-														<div class="modal-body">
-															<div class="row">
-																<input type="hidden" name="transfer_id" value="<?php echo $assignment_id; ?>">
-																<div class="form-group col-12" style="padding-bottom: 15px;">
-																	<div class="row">
-																		<div class="form-group col-8">
-																			<label class="col-form-label">Accountable End User</label>
-																			<input class="form-control" type="text" name="end_user" value="<?php echo $assignment['username']; ?>" readonly>
-																		</div>
-																	</div>
-																</div>
-															</div>
-														</div>
-														<div class="modal-footer">
-															<input type="submit" class="btn green radius-xl outline" name="archive-transferedassignment" value="Archive" onClick="return confirm('Archive this record?')">
-															<button type="button" class="btn red outline radius-xl" data-dismiss="modal">Close</button>
-														</div>
-													</div>
-												</div>
-											</form>
-										</div><!-- Archice assignment record modal -->
-
 										<?php endforeach; ?> <!-- table data end foreach -->
 									<?php endif; ?> <!-- table data endif -->
 
@@ -384,18 +338,6 @@
 								$assignment_id = $_POST['assignment_id'];
 
 								$model->archiveAssignment($assignment_id);
-								
-								$_SESSION['successMessage'] = "Assignment record archived succesfully!";
-								header("Location: inventory-assignment.php");
-								exit();
-							}
-
-							
-							/* Archive transfered assignment record controller */
-							if (isset($_POST['archive-transferedassignment'])) {
-								$transfer_id = $_POST['transfer_id'];
-
-								$model->archivetransferedAssignment($transfer_id);
 								
 								$_SESSION['successMessage'] = "Assignment record archived succesfully!";
 								header("Location: inventory-assignment.php");

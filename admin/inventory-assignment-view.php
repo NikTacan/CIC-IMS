@@ -89,8 +89,15 @@
 						<span class="ttr-label">Report</span>
 					</a>
 				</li>
+				<?php if($userInfo['role_id'] == 1): ?>
 				<li style="padding-left: 20px; padding-top: 40px; padding-bottom: 5px; margin-top: 0px; margin-bottom: 0px;">
 					<span class="ttr-label" style="color: #D5D6D8; font-weight: 500;">Admin Settings</span>
+				</li>
+				<li class="" style="margin-top: 0px;">
+					<a href="sub-admin" class="ttr-material-button">
+						<span class="ttr-icon"><i class="fa fa-address-book" aria-hidden="true"></i></span>
+						<span class="ttr-label">Sub Admin</span>
+					</a>
 				</li>
 				<li class="" style="margin-top: 0px;">
 					<div class="accordion accordion-flush" id="accordionSettings">
@@ -129,6 +136,14 @@
 						<span class="ttr-label">Archives</span>
 					</a>
 				</li>
+				<?php else: ?>
+				<li class="" style="margin-top: 0px;">
+					<a href="history" class="ttr-material-button">
+						<span class="ttr-icon"><i class="fa fa-history" aria-hidden="true"></i></span>
+						<span class="ttr-label">Activity Logs</span>
+					</a>
+				</li>
+				<?php endif; ?>
 			</ul>
 		</nav>
 	</div>
@@ -142,24 +157,26 @@
 					<!-- Header aligned to the left -->
 					<h2 class="p-0 mb-0">Inventory Assignment <span class="fw-normal">- Edit Properties</span></h2>
 
-					<!-- Buttons aligned to the right, side by side -->
-					<div class="d-flex gap-2">
-						<!-- Add Items Button Form -->
-						<form method="post" action="inventory-assignment-add.php?id=<?php echo $assignment_id ?>">
-							<input type="hidden" name="assignment_id" value="<?php echo $assignment_id ?>">
-							<button class="btn green radius-xl" style="background-color: #5ADA86;" id="add-items" name="add-items">
-								<i class="fa fa-plus"></i>&nbsp;<span data-toggle="tooltip">ADD ITEMS</span>
-							</button>
-						</form>
+					<?php if($userInfo['role_id'] == 1): ?>
+						<!-- Buttons aligned to the right, side by side -->
+						<div class="d-flex gap-2">
+							<!-- Add Items Button Form -->
+							<form method="post" action="inventory-assignment-add.php?id=<?php echo $assignment_id ?>">
+								<input type="hidden" name="assignment_id" value="<?php echo $assignment_id ?>">
+								<button class="btn green radius-xl" style="background-color: #5ADA86;" id="add-items" name="add-items">
+									<i class="fa fa-plus"></i>&nbsp;<span data-toggle="tooltip">ADD ITEMS</span>
+								</button>
+							</form>
 
-						<!-- Edit Button Form -->
-						<form method="post" action="inventory-assignment-edit.php?id=<?php echo $assignment_id ?>">
-							<input type="hidden" name="assignment_id" value="<?php echo $assignment_id ?>">
-							<button class="btn blue radius-xl" id="edit-items" name="edit-items">
-								<i class="ti-marker-alt"></i>&nbsp;&nbsp;<span data-toggle="tooltip">EDIT</span>
-							</button>
-						</form>
-					</div>
+							<!-- Edit Button Form -->
+							<form method="post" action="inventory-assignment-edit.php?id=<?php echo $assignment_id ?>">
+								<input type="hidden" name="assignment_id" value="<?php echo $assignment_id ?>">
+								<button class="btn blue radius-xl" id="edit-items" name="edit-items">
+									<i class="ti-marker-alt"></i>&nbsp;&nbsp;<span data-toggle="tooltip">EDIT</span>
+								</button>
+							</form>
+						</div>
+					<?php endif; ?>
 				</div>
 			</div>
 		</div>
@@ -207,7 +224,7 @@
 						<div class="row" width="100%">
 							<div class="form-group col-6">
 								<label class="col-form-label">Accountable End User</label>
-								<input class="form-control" name="end_user" value="<?php echo $assignment_details['username'] ?>" readonly>
+								<input class="form-control" name="end_user" value="<?php echo $assignment_details['username']; ?>" readonly>
 							</div>
 							<div class="form-group col-6">
 								<label class="col-form-label">Date Added</label>
@@ -291,19 +308,6 @@
 						</div> <!-- row -->
 						
 						<?php
-
-							/* Insert new assignment record controller */
-							if (isset($_POST['transfer-assignment'])) {
-								$newEndUser = $_POST['newEndUser'];
-								$oldEndUser = $_POST['oldEndUser'];
-								$fromAssignmentId = $_POST['assignment_id'];
-							
-								// Insert the new assignment transfer record
-								$newAssignmentId = $model->insertAssignmentTransfer($newEndUser, $oldEndUser);
-							
-								// Redirect to inventory-assignment-transfer.php with the new and old assignment IDs
-								echo "<script>window.open('inventory-assignment-transfer.php?new_id=$newAssignmentId&old_id=$fromAssignmentId', '_self');</script>";
-							}
 
 							ob_end_flush(); 
 							

@@ -3,7 +3,7 @@
 	Class Model {
 		private $server = "localhost";
 		private $username = "root";
-		private $password = "";
+		private $password = "cicims";
 		private $dbname = "cic_ims";
 		private $conn;
 
@@ -16,70 +16,38 @@
 		}
 
 
-		public function getUserInventory($userId) {
-			$inventory = array();
-			
-			$query = "SELECT i.description, i.property_no, c.category_name, ia.qty, ia.status_id, ia.date_assigned
-					  FROM inventory i
-					  JOIN inventory_assignment ia ON i.property_no = ia.property_no
-					  JOIN categories c ON i.category_id = c.id
-					  WHERE ia.user_id = ?";
-			
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("i", $userId);
-				$stmt->execute();
-				$result = $stmt->get_result();
-				
-				while ($row = $result->fetch_assoc()) {
-					$inventory[] = $row;
-				}
-				
-				$stmt->close();
-			}
-			
-			return $inventory;
-		}
-	
-		public function getUserDetails($userId) {
-			$query = "SELECT first_name, last_name FROM end_user WHERE id = ?";
-			$stmt = $this->conn->prepare($query);
-			$stmt->bind_param("i", $userId);
-			$stmt->execute();
-			$result = $stmt->get_result();
-			return $result->fetch_assoc();
-		}
-
-
+		
 		  //==================================================================//
 		 //			        SIGN-IN, USER FUNCTION MODEL 		     		 //
 		//==================================================================//
 
-		/* User sign-in */
+		/* User sign-in (../index.php)*/
 		public function signIn($uname, $pword) {
 			$response = [
 				'success' => false,
 				'message' => 'Account not found or invalid credentials',
 				'data' => null
 			];
-			
+		
 			// Select status field along with role_id to confirm user status if applicable
-			$query = "SELECT u.id, u.username, u.role_id, u.password, e.status 
+			$query = "SELECT u.id, u.username, u.role_id, u.password, e.status AS end_user_status, s.status AS sub_admin_status
 					  FROM users u 
-					  LEFT JOIN end_user e ON u.username = e.username
+					  LEFT JOIN end_user e ON u.id = e.user_id
+					  LEFT JOIN sub_admin s ON u.id = s.user_id
 					  WHERE u.username = ?";
-			
+		
 			if ($stmt = $this->conn->prepare($query)) {
 				$stmt->bind_param('s', $uname);
-				
+		
 				if ($stmt->execute()) {
 					$result = $stmt->get_result();
-					
+		
 					if ($result->num_rows === 1) {
 						$row = $result->fetch_assoc();
 						error_log("Found user with ID: " . $row['id']);
-						
-						// Check if the role is "user" and if account is inactive
-						if ($row['role_id'] == 2 && $row['status'] != '1') {
+		
+						// Check if the account is inactive based on role
+						if (($row['role_id'] == 3 && $row['end_user_status'] != '1') || ($row['role_id'] == 2 && $row['sub_admin_status'] != '1')) {
 							$response['message'] = 'Account is inactive';
 							error_log("Inactive account for username: " . $uname);
 						} elseif (password_verify($pword, $row['password'])) {
@@ -101,7 +69,7 @@
 					error_log($response['message']);
 				}
 				$stmt->close();
-				
+		
 			} else {
 				$response['message'] = "Failed to prepare statement: " . $this->conn->error;
 				error_log($response['message']);
@@ -109,9 +77,10 @@
 		
 			return $response;
 		}
+		
 
 
-		/* Reset user password to default (user-view.php) */
+		/* Reset user password to default (user/user-view && admin/end-user) */
 		public function resetUserPassword($user_id) {
 			$query = "UPDATE users SET password = ? WHERE id = ?";
 			$default_password = '12345';
@@ -142,7 +111,7 @@
 			}
 		}
 
-		/* Get user details based on <USER ID> (permission.php) */
+		/* Get user details based on <USER ID> (user-view) */
 		public function getUserInfo($user_id) {
 			$data = null;
 			$query = "SELECT * FROM users WHERE id = ?";
@@ -163,45 +132,19 @@
 						USER MANAGEMENT 
 		=============================================*/
 
-		/* Insert new user record (user.php) */
-		public function insertUser($user_role, $name, $username, $password, $date_created) {
-			$query = "INSERT INTO users (role_id, username, password, date_created) VALUES (?, ?, ?, ?)";
+		/* ========================================
+						SUB ADMIN
+		========================================= */
 
-			$hashed_password = password_hash($password, PASSWORD_DEFAULT);
-
-			if ($stmt = $this->conn->prepare($query)) {
-				$date_created = date("Y-m-d H:i:s");
-
-				$stmt->bind_param("issss", $user_role, $username, $hashed_password);
-				$stmt->execute();
-				$stmt->close();
-			}
-		}
-
-		/*======================================
-			CREATE END USER - NEW USER
-		=====================================*/
-
-		private function createEndUserNewUser($username, $password, $date_created) {
-			$query = "INSERT INTO users (role_id, username, password, date_created) VALUES (?, ?, ?, ?)";
-			$user_role = '2';
-
-			if ($stmt = $this->conn->prepare($query)) {
-				$date_created = date("Y-m-d H:i:s");
-
-				$stmt->bind_param("isss", $user_role, $username, $password, $date_created);
-				$stmt->execute();
-				$stmt->close();
-			}
-		}
-
-
-		/* Display/get user records (users.php) */
-		public function displayUsers() {
+		public function getSubAdmin() {
 			$data = null;
-			$query = "SELECT users.*, roles.name as role_name FROM users
-					  JOIN roles ON users.role_id = roles.id
-					  ORDER BY users.id DESC";
+			$query = "SELECT s.id AS sub_admin_id, s.user_id, s.first_name, s.middle_name, s.last_name, s.contact, s.designation, s.sex, s.status, s.date_registered, 
+			d.id AS designation_id, d.designation_name, 
+			u.id AS user_id, u.role_id, u.username, u.password, u.date_created  
+				FROM sub_admin s
+				LEFT JOIN designation d ON s.designation = d.id
+				LEFT JOIN users u ON s.user_id = u.id
+				ORDER BY s.date_registered  DESC";
 			if ($stmt = $this->conn->prepare($query)) {
 				$stmt->execute();
 				$result = $stmt->get_result();
@@ -213,9 +156,164 @@
 			}
 			return $data;
 		}
+
+		/* Get sub admin by Id (sub-admin) */
+		public function getSubAdminByID($subAdmin_id) {
+			$data = null;
+			$query = "SELECT s.*, d.id AS designation_id, d.designation_name
+					FROM sub_admin s 
+					LEFT JOIN designation d ON s.designation = d.id 
+					WHERE s.id = ?";
+
+			if ($stmt = $this->conn->prepare($query)) {
+				$stmt->bind_param("i", $subAdmin_id);
+				$stmt->execute();
+				$result = $stmt->get_result();
+				$data = $result->fetch_assoc();
+				$stmt->close();
+			}
+			return $data;
+		}
 		
 
-		/* Update user record (users.php) */
+		/* Insert new end user data (end-user.php) */
+		public function createSubAdmin($username, $firstName, $middleName, $lastName, $sex, $password, $contact, $designation) {
+			// First, insert the user into the 'users' table
+			$hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+			$dateCreated = date("Y-m-d H:i:s");
+			$user_role = '2'; // sub_admin
+		
+			$query = "INSERT INTO users (role_id, username, password, date_created) VALUES (?, ?, ?, ?)";
+			if ($stmt = $this->conn->prepare($query)) {
+				$stmt->bind_param("isss", $user_role, $username, $hashedPassword, $dateCreated);
+				$stmt->execute();
+				$user_id = $this->conn->insert_id;  // Get the inserted user's ID
+				$stmt->close();
+			} else {
+				return false;
+			}
+		
+			// Now insert the sub_admin using the user_id from the 'users' table
+			$query = "INSERT INTO sub_admin (user_id, first_name, middle_name, last_name, contact, sex, designation, status, date_registered) 
+					  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+			$statusActive = '1'; // active
+
+			if ($stmt = $this->conn->prepare($query)) {
+				$stmt->bind_param("isssisiis", $user_id, $firstName, $middleName, $lastName, $contact, $sex,$designation,  $statusActive, $dateCreated);
+				if ($stmt->execute()) {
+					$stmt->close();
+		
+					// Log transaction
+					$logMessage = "'s has been added to <b>Sub Admin</b> records.";    
+					$accountId = $_SESSION['sess'];
+					$SudAdminName = $firstName . ' ' . $lastName;
+					$this->logTransaction('sub_admin', 'INSERT', $SudAdminName, $SudAdminName, $accountId, $logMessage);
+		
+					return true;
+				} else {
+					$stmt->close();
+					return false;
+				}
+			}
+		
+			return false;
+		}
+		
+
+		/* Update End user data (end-user.php) */
+		public function updateSubAdminStatus($status, $subAdmin_id) {
+			// Get current user details
+		
+			$query = "UPDATE sub_admin SET status = ? WHERE id = ?";
+		
+			if ($stmt = $this->conn->prepare($query)) {
+				$stmt->bind_param("ii", $status, $subAdmin_id);
+				$stmt->execute();
+				$stmt->close();
+			} else {
+				echo "Error: " . $this->conn->error;
+			}
+		}
+
+		/* Update End user data (end-user.php) */
+		public function updateSubAdmin($username, $firstName, $middleName, $lastName, $sex, $contact, $designation, $subAdmin_id) {
+			
+			$query = "UPDATE users SET username = ? WHERE id = (SELECT user_id FROM sub_admin WHERE id = ?)";
+			if ($stmt = $this->conn->prepare($query)) {
+				$stmt->bind_param("si", $username, $subAdmin_id);
+				$stmt->execute();
+				$stmt->close();
+			}
+		
+			$query = "UPDATE sub_admin SET first_name = ?, middle_name = ?, last_name = ?, contact = ?, sex = ?, designation = ? WHERE id = ?";
+			if ($stmt = $this->conn->prepare($query)) {
+				$stmt->bind_param("ssssssi", $firstName, $middleName, $lastName, $contact, $sex, $designation, $subAdmin_id);
+				$stmt->execute();
+				$stmt->close();
+			}
+		}
+		
+
+		/*===========================================
+				End Users Acitivity logs
+		============================================*/
+
+		/* Log Fund Cluster update transaction function */
+		public function logEndSubAdminUpdateTransaction($oldValues, $newValues) {
+			$logMessage = " Sub admin's record has been updated. ";
+			$account_id = $_SESSION['sess'];
+			$subAdminUsername = $oldValues['username'];
+			
+			$changes = array();
+			
+			// Check if the End user name is changed
+			if ($oldValues['username'] != $newValues['username']) {
+				$changes[] = "Username changed from '{$oldValues['username']}' to '{$newValues['username']}'";
+			}
+
+			// Check if the End user first name is changed
+			if ($oldValues['first_name'] != $newValues['firstname']) {
+				$changes[] = "First name changed from '{$oldValues['first_name']}' to '{$newValues['firstname']}'";
+			}
+
+			// Check if the End user middle name is changed
+			if ($oldValues['middle_name'] != $newValues['middlename']) {
+				$changes[] = "Middle name changed from '{$oldValues['middle_name']}' to '{$newValues['middlename']}'";
+			}
+			
+			// Check if the End user last name is changed
+			if ($oldValues['last_name'] != $newValues['lastname']) {
+				$changes[] = "Last name changed from '{$oldValues['last_name']}' to '{$newValues['lastname']}'";
+			}
+
+			// Check if the sex is changed
+			if ($oldValues['sex'] != $newValues['sex']) {
+				$changes[] = "Sex changed from '{$oldValues['sex']}' to '{$newValues['sex']}'";
+			}
+
+			// Check if the contact is changed
+			if ($oldValues['contact'] != $newValues['contact']) {
+				$changes[] = "Contact updated from '{$oldValues['contact']}' to '{$newValues['contact']}'";
+			}
+
+			// Check if the designation is changed
+			if ($oldValues['designation'] != $newValues['designation']) {
+				$changes[] = "Designation updated from '{$oldValues['designation']}' to '{$newValues['designation']}'";
+			}
+			
+			if (!empty($changes)) {
+				$logMessage = $logMessage . implode(', ', $changes);
+
+				$this->logTransaction('sub_admin', 'UPDATE', $subAdminUsername, $subAdminUsername, $account_id, $logMessage);
+			}	
+		}
+
+		/*======================================
+			CREATE END USER - NEW USER
+		=====================================*/
+
+
+		/* Update user record (admin/end-user && user/user-view) */
 		public function updateUser($user_role, $username, $password, $user_id) {
 			$query = "UPDATE users SET role_id = ?, username = ?, password = ? WHERE id = ?";
 
@@ -228,16 +326,6 @@
 			}
 		}
 
-		/* Delete user record (users.php) */
-		public function deleteUser($id) {
-			$query = "DELETE FROM users WHERE id = ?";
-
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("i", $id);
-				$stmt->execute();
-				$stmt->close();
-			}
-		}
 
 		/* Update user personal details (user-view.php) */
 		public function updateUserInfo($username, $firstname, $middlename, $lastname, $sex, $birthday, $contact, $email, $user_id) {
@@ -250,7 +338,17 @@
 			}
 		}
 
-		
+		/* Update user personal details (user-view.php) */
+		public function updateUserUsername($username, $user_id) {
+			$query = "UPDATE users SET username = ? WHERE id = ?";
+
+			if ($stmt = $this->conn->prepare($query)) {
+				$stmt->bind_param("si", $username, $user_id);
+				$stmt->execute();
+				$stmt->close();
+			}
+		}
+
 
 		/* Get user details based on <USER ID> (user-view.php) */
 		public function getEndUserInfo($user_id) {
@@ -258,7 +356,7 @@
 			$query = "
 				SELECT 
 					eu.id AS end_user_id, 
-					eu.username, 
+					eu.user_id, 
 					eu.first_name, 
 					eu.middle_name, 
 					eu.last_name, 
@@ -271,13 +369,13 @@
 					eu.date_registered, 
 					u.id AS user_id, 
 					u.role_id, 
-					u.username AS user_username, 
+					u.username,
 					u.password, 
 					u.date_created, 
 					d.id AS designation_id, 
 					d.designation_name
 				FROM end_user eu
-				LEFT JOIN users u ON eu.username = u.username
+				LEFT JOIN users u ON eu.user_id = u.id
 				LEFT JOIN designation d ON eu.designation = d.id
 				WHERE u.id = ?";
 		
@@ -293,7 +391,7 @@
 			return $data;
 		}
 		
-
+		// Get admin info (user-view)
 		public function getAdminInfo($user_id) {
 			$data = null;
 			$query = "SELECT * FROM users WHERE id = ?";
@@ -310,182 +408,69 @@
 			return $data;
 		}
 
-		// oct.26
-		public function getUserIdByUsername($username) {
-			$query = "SELECT id FROM end_user WHERE username = ?";
+		/* ==========================================
+						DASHBOARD
+		============================================*/
+
+		
+		// Method to get monthly assignment totals for the current year
+		public function getMonthlyAssignments($year = null) {
+			$year = $year ?: date('Y');
 			
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("s", $username); // Bind the username parameter
-				$stmt->execute();
-				$result = $stmt->get_result();
-				$row = $result->fetch_assoc();
-				$stmt->close();
-		
-				return $row['id'] ?? null; // Return null if no user found
-			}
-			return null;
-		}
-
-		
-		/*=============================================
-						ROLES
-		=============================================*/
-
-		/* INSERT ROLE FUNCTION (role.php) */
-		public function insertRoles($name, $description) {
-			$query = "INSERT INTO roles (name, description, date_created) VALUES (?, ?, ?)";
-
-			if ($stmt = $this->conn->prepare($query)) {
-				$date_created = date("Y-m-d H:i:s");
-
-				$stmt->bind_param("sss", $name, $description, $date_created);
-				$stmt->execute();
-				$stmt->close();
-			}
-		}
-
-		/* DISPLAY ROLE FUNCTION (role.php) */
-		public function displayRoles() {
-			$data = null;
-			$query = "SELECT * FROM roles ORDER BY id ASC";
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->execute();
-				$result = $stmt->get_result();
-				$num_of_rows = $stmt->num_rows;
-				while ($row = $result->fetch_assoc()) {
-					$data[] = $row;
-				}
-				$stmt->close();
-			}
-			return $data;
-		}
-
-
-		
-
-		/* UPDATE ROLE RECORD FUNCTION (role.php) */
-		public function updateRole($name, $description, $id) {
-			$query = "UPDATE roles SET name = ?, description = ? WHERE id = ?";
-
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("ssi", $name, $description, $id);
-				$stmt->execute();
-				$stmt->close();
-			}
-		}
-
-		/* DELETE ROLE ID FUNCTION (role.php) */
-		public function deleteRole($id) {
-			$query = "DELETE FROM roles WHERE id = ?";
-
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("i", $id);
-				$stmt->execute();
-				$stmt->close();
-			}
-		}
-
-		/*=============================================
-				PERMISSIONS, PERMISSION -> ROLE
-		=============================================*/
-
-
-		/* GET ALL PERMISSIONS RECORD FUNCTION (permission.php) */
-		public function getAllPermissions() {
 			$data = [];
-			$query = "SELECT * FROM permission";
+			$query = "
+				SELECT MONTH(date_added) AS month, COUNT(id) AS count
+				FROM inventory_assignment
+				WHERE YEAR(date_added) = ?
+				GROUP BY MONTH(date_added)
+				ORDER BY month";
 			
 			if ($stmt = $this->conn->prepare($query)) {
+				$stmt->bind_param("i", $year); 
 				$stmt->execute();
 				$result = $stmt->get_result();
-				while ($row = $result->fetch_assoc()) {
-					$data[] = $row;
-				}
-				$stmt->close();
-			}
-			return $data;
-		}
-
-
-		/* SAVE ALL PERMISSIONS OF THE ROLE ID FUNCTION (permission.php) */
-		public function saveRolePermissions($role_id, $module_permissions) {
-			$deleteQuery = "DELETE FROM permission_role WHERE role_id = ?";
-			
-			if ($deleteStmt = $this->conn->prepare($deleteQuery)) {
-				$deleteStmt->bind_param("i", $role_id);
-				$deleteStmt->execute();
-				$deleteStmt->close();
-
-				$insertQuery = "INSERT INTO permission_role (role_id, permission_id, can_access, can_create, can_read, can_update, can_delete) VALUES (?, ?, ?, ?, ?, ?, ?)";
-
-				foreach ($module_permissions as $module => $permissions) {
-					$permission_id = $this->getPermissionIdFromModuleName($module);
-	
-					if ($insertStmt = $this->conn->prepare($insertQuery)) {
-						$insertStmt->bind_param("iiiiiii", $role_id, $permission_id, $permissions['access'], $permissions['create'], $permissions['read'], $permissions['update'], $permissions['delete']);
-						$insertStmt->execute();
-						$insertStmt->close();
-					}
 				
-				}
-			}
-		}
-
-		/* GET PERMISSION ID OF SPECIFIC MODULE FUNCTION (saveRolePermissions()) */
-		private function getPermissionIdFromModuleName($module)
-		{
-			$query = "SELECT id FROM permission WHERE module = ?";
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("s", $module);
-				$stmt->execute();
-				$stmt->bind_result($permission_id);
-				if ($stmt->fetch()) {
-					$stmt->close();
-					return $permission_id;
-				}
-				$stmt->close();
-			}
-			return false;
-		}
-
-		/* GET ALL PERMISSIONS OF ROLE ID FUNCTION (permission.php) */
-		public function getAllRolePermissions($role_id) {
-			$data = [];
-			$query = "SELECT permission.module, permission_role.can_access, permission_role.can_create, permission_role.can_read, permission_role.can_update, permission_role.can_delete
-					FROM permission_role
-					INNER JOIN permission ON permission_role.permission_id = permission.id
-					WHERE permission_role.role_id = ?";
-
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("i", $role_id);
-				$stmt->execute();
-				$result = $stmt->get_result();
+				// Initialize all months with zero counts
+				$allMonths = array_fill(1, 12, 0);
+				
 				while ($row = $result->fetch_assoc()) {
-					$data[] = $row;
+					$allMonths[(int)$row['month']] = (int)$row['count'];  
 				}
 				$stmt->close();
+			
+				foreach ($allMonths as $month => $count) {
+					$data[] = ['month' => $month, 'count' => $count];
+				}
 			}
 			return $data;
 		}
 
-		/* GET ALL PERMISSIONS AND ROLE PERMISSIONS FUNCTION (middleware.php) */
-		public function getAllPermissionAndRolePermissions($role_id, $module) {
-			$query = "SELECT permission_role.*, permission.* FROM permission_role
-					LEFT JOIN permission ON permission_role.permission_id = permission.id 
-					WHERE permission_role.role_id = ? AND permission.module = ?";
+		
+		// Method to get available years for assignments
+		public function getAvailableYears() {
+			$years = [];
+			$query = "
+				SELECT DISTINCT YEAR(date_added) AS year
+				FROM inventory_assignment
+				ORDER BY year DESC";
 			
-			if($stmt = $this->conn->prepare($query)) {
-			$stmt->bind_param("is", $role_id, $module);
-			$stmt->execute();
-			$result = $stmt->get_result();
-			$permission = $result->fetch_assoc();
-			$stmt->close();
+			if ($stmt = $this->conn->prepare($query)) {
+				$stmt->execute();
+				$result = $stmt->get_result();
+				
+				// Fetch the years from the result
+				while ($row = $result->fetch_assoc()) {
+					$years[] = $row['year'];
+				}
+				$stmt->close();
 			}
-			return $permission;
+			return $years;
 		}
 
-
 		
+
+
+
 		/*=============================================
 						INVENTORY 
 		=============================================*/
@@ -494,7 +479,7 @@
 					VERIFY UNIQUE KEY 
 		=============================================*/
 
-		/* Check if Inventory No. Exist in Inventory Record  (inventory.php) */
+		/* Check if Inventory Exist (history.php) */
 		public function checkInvNoExist($inv_id) {
 			$data = null;
 			$query = "SELECT * FROM inventory WHERE inv_id = ?";
@@ -511,7 +496,7 @@
 			return $data;
 		}
 
-		/* Check if Property No. Exist in Inventory Record (inventory.php) */
+		/* Check if Property No. Exist (inventory.php && archive.php) */
 		public function checkPropertyNoExist($property_no) {
 			$data = null;
 			$query = "SELECT * FROM inventory WHERE property_no = ?";
@@ -529,7 +514,7 @@
 		}
 
 		
-		/* Check if Inventory No. Exist in Inventory Record  (inventory.php) */
+		/* Check if Inventory is assigned  (inventory.php) */
 		public function checkPropertyNoAssignment($property_no) {
 			$query = "SELECT COUNT(*) as assigned FROM inventory_assignment_item WHERE property_no = ?";
 			if ($stmt = $this->conn->prepare($query)) {
@@ -566,7 +551,7 @@
 
 		
 
-		/* Get all Inventory Data from Database (inventory.php) */
+		/* Get all Inventory Data from Database (inventory.php && report) */
 		public function getAllInventory() {
 			$data = null;
 			$query = "SELECT i.*, c.id AS category_id, c.category_name, l.id AS location_id, l.location_name, a.id AS article_id, a.article_name, u.id AS unit_id, u.unit_name, e.id AS estlife_id, e.est_life, n.id AS note_id, n.note_name AS remark_name, n.module, n.color
@@ -603,7 +588,7 @@
 			}
 		}
 		
-		/* Update Inventory Record (inventory.php) */
+		/* Archive Inventory Record (inventory.php) */
 		public function archiveInventory($inv_id) {
 			// Retrieve inventory details before deleting
 			$inventoryInfo = $this->getInventoryByInvId($inv_id);
@@ -661,26 +646,6 @@
 			
 		}
 
-		/*==============================
-			INVENTORY DETAILS BY ID
-		===============================*/
-
-		
-		/* Get Inventory Details based on Inv ID (inventory.php) 
-		public function getInventoryDetailsByInvId($inv_id) {
-			$query = "SELECT * FROM inventory WHERE inv_id = ?";
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("i", $inv_id);
-				$stmt->execute();
-				$result = $stmt->get_result();
-				if ($row = $result->fetch_assoc()) {
-					return $row;
-				}
-				$stmt->close();
-			}
-			return null;
-		}*/
-		
 
 		/*==============================
 			INVENTORY LOG TRANSACTION
@@ -691,19 +656,20 @@
 			$logMessage = "'s information has been updated. ";
 			$account_id = $_SESSION['sess'];
 			$description = $oldValues['description'];
-			$inv_id = $oldValues['inv_id'];
+			$property_no = $oldValues['property_no'];
 		
 			$changes = array();
 		
 			// Compare each field and collect changes
 			if ($oldValues['inv_id'] != $newValues['inv_id']) {
 				$changes[] = "Inventory No. changed from '{$oldValues['inv_id']}' to '{$newValues['inv_id']}'";
-				$inv_id = $newValues['inv_id'];
 			}
 		
 			// Repeat for all fields you want to track
 			if ($oldValues['property_no'] != $newValues['property_no']) {
 				$changes[] = "Property No. changed from '{$oldValues['property_no']}' to '{$newValues['property_no']}'";
+				$property_no = $newValues['property_no'];
+
 			}
 			if ($oldValues['category_id'] != $newValues['category']) {
 				$oldCategoryName = $oldValues['category_name'];
@@ -749,7 +715,7 @@
 		
 			if (!empty($changes)) {
 				$logMessage = $logMessage . implode(', ', $changes);
-				$this->logTransaction('inventory', 'UPDATE', $inv_id, $description, $account_id, $logMessage);
+				$this->logTransaction('inventory', 'UPDATE', $property_no, $description, $account_id, $logMessage);
 			}
 		}
 		
@@ -771,7 +737,7 @@
 			return $data;
 		}
 
-		/* Log inventory archive restore transaction function */
+		/* Log inventory archive restore transaction function (archive-inventory.php)*/
 		public function logInventoryRestoreTransaction($inv_id, $description, $date_archived) {
 			$logMessage = "'s record has been restored. Archived last <span class="."fw-bold"."> $date_archived</span> in Inventory archives.";
 			$account_id = $_SESSION['sess'];
@@ -781,99 +747,17 @@
 
 		/*=====================================================================
 						INVENTORY ASSIGNMENT FUNCTIONS
-		=====================================================================*/
+		=====================================================================*/	
 
-		// Method to get monthly assignment totals for the current year
-		public function getMonthlyAssignments($year = null) {
-			// Default to current year if no year is provided
-			$year = $year ?: date('Y');
-			
-			$data = [];
-			$query = "
-				SELECT MONTH(date_added) AS month, COUNT(id) AS count
-				FROM inventory_assignment
-				WHERE YEAR(date_added) = ?
-				GROUP BY MONTH(date_added)
-				ORDER BY month";
-			
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("i", $year); // Bind the year parameter to the query
-				$stmt->execute();
-				$result = $stmt->get_result();
-				
-				// Initialize all months with zero counts
-				$allMonths = array_fill(1, 12, 0);
-				
-				while ($row = $result->fetch_assoc()) {
-					// Force count to be an integer
-					$allMonths[(int)$row['month']] = (int)$row['count'];  
-				}
-				$stmt->close();
-			
-				// Format the data into the desired structure
-				foreach ($allMonths as $month => $count) {
-					$data[] = ['month' => $month, 'count' => $count];
-				}
-			}
-			return $data;
-		}
-
-
-		// Method to get available years for assignments
-		public function getAvailableYears() {
-			$years = [];
-			$query = "
-				SELECT DISTINCT YEAR(date_added) AS year
-				FROM inventory_assignment
-				ORDER BY year DESC";
-			
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->execute();
-				$result = $stmt->get_result();
-				
-				// Fetch the years from the result
-				while ($row = $result->fetch_assoc()) {
-					$years[] = $row['year'];
-				}
-				$stmt->close();
-			}
-			return $years;
-		}
-
-		
-		
-		
-		
-
-
-		// Method to get all inventory assignments
+		// Method to get all inventory assignment (inventory-assignment.php)
 		public function getInventoryAssignment() {
 			$data = [];
-			$query = "SELECT a.id AS assignment_id, a.end_user, a.status, a.date_added, e.id AS end_user_id, e.username, n.id AS status_id, n.note_name, n.module, n.color
+			$query = "SELECT a.id AS assignment_id, a.end_user, a.status, a.date_added, e.id AS end_user_id, e.user_id, e.first_name, e.last_name, n.id AS status_id, n.note_name, n.module, n.color, u.username
 					FROM inventory_assignment a
 					LEFT JOIN end_user e ON a.end_user = e.id
 					LEFT JOIN note n ON a.status = n.id
+					LEFT JOIN users u ON e.user_id = u.id
 					ORDER BY a.date_added DESC";
-
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->execute();
-				$result = $stmt->get_result();
-				while ($row = $result->fetch_assoc()) {
-					$data[] = $row;
-				}
-				$stmt->close();
-			}
-			return $data;
-		}
-
-		// Method to get all transferred inventory assignments
-		public function getInventoryAssignmentTransferred() {
-			$data = [];
-			$query = "SELECT i.id AS transfer_id, i.*, e1.username AS old_username, e2.username AS new_username
-					FROM inventory_transfer i
-					LEFT JOIN end_user e1 ON i.old_end_user = e1.id
-					LEFT JOIN end_user e2 ON i.new_end_user = e2.id
-					ORDER BY i.date_added DESC";
 
 			if ($stmt = $this->conn->prepare($query)) {
 				$stmt->execute();
@@ -896,10 +780,9 @@
 			if ($stmt = $this->conn->prepare($query)) {
 				$stmt->bind_param("ss", $endUser, $date_added);
 				$stmt->execute();
-				$assignment_id = $stmt->insert_id; // Get the ID of the newly inserted record
+				$assignment_id = $stmt->insert_id;
 				$stmt->close();
 			} else {
-				// Handle error if needed
 				die('Error: ' . $this->conn->error);
 			}
 
@@ -909,51 +792,9 @@
 			$logMessage = " have new <b>Inventory assignment</b>.";
 			$account_id = $_SESSION['sess'];
 		
-			$this->logTransaction('assignment', 'INSERT', $endUserName, $endUserName, $account_id, $logMessage);
+			$this->logTransaction('assignment', 'INSERT', $assignment_id, $endUserName, $account_id, $logMessage);
 			
 			return $assignment_id;
-		}
-
-		/* Insert inventory assignment for inventory transfer record (inventory-assignment-view.php) */
-		public function insertAssignmentTransfer($newEndUser, $oldEndUser) {
-			$date_added = date("Y-m-d H:i:s");
-			$query = "INSERT INTO inventory_transfer (new_end_user, old_end_user, date_added, date_transferred) VALUES (?, ?, ?, ?)";
-			
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("ssss", $newEndUser, $oldEndUser, $date_added, $date_added);
-				$stmt->execute();
-				$assignment_id = $stmt->insert_id; 
-				$stmt->close();
-			} else {
-				// Handle error if needed
-				die('Error: ' . $this->conn->error);
-			}
-
-			$newEndUserDetail = $this->getEndUserDetailByID($newEndUser);
-			$newEndUserName = $newEndUserDetail['username'];
-
-			$oldEndUserDetail = $this->getEndUserDetailByID($oldEndUser);
-			$oldEndUserName = $oldEndUserDetail['username'];
-		
-			$logMessage = "'s properties transferred to " . $newEndUserName . " <b>Inventory assignment</b>.";
-			$account_id = $_SESSION['sess'];
-		
-			$this->logTransaction('assignment', 'INSERT', $oldEndUserName, $oldEndUserName, $account_id, $logMessage);
-			
-			return $assignment_id;
-		}
-		
-		
-
-		/* Update Inventoy assignment record function (assignment.php) */
-		public function updateAssignment($endUser, $status, $assignment_id) {
-			$query = "UPDATE inventory_assignment SET end_user = ?, status = ? WHERE id = ?";
-
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("sii", $endUser, $status, $assignment_id);
-				$stmt->execute();
-				$stmt->close();
-			}
 		}
 
 		/* Archive inventory assignment record function (inventory-assignment.php) */
@@ -988,40 +829,9 @@
 			$this->archiveAssignmentItems($assignment_id); // Then archive the items belong to assignment record 
 		}
 		
-		public function archivetransferedAssignment($transfer_id) {
-			$assignmentInfo = $this->getAssignmentTransferDetailById($transfer_id);
-			$assignment_id = $assignmentInfo['assignment_id']; // Fetch assignment ID
-			$endUserId = $assignmentInfo['new_end_user']; // Assuming new_end_user is the end user ID
-			$endUserName = $assignmentInfo['new_username']; // Assuming new_username is the end user name
-			$status = $assignmentInfo['note_name']; // Assuming note_name is the status name
-			$date_added = $assignmentInfo['date_added'];
-			$date_archived = date("Y-m-d H:i:s");
 		
-			$query = "INSERT INTO inventory_assignment_archive (assignment_id, end_user, status, date_added, date_archived) VALUES (?, ?, ?, ?, ?)";
-		
-			if ($stmt = $this->conn->prepare($query)) {
-				// Combine ID and name into separate variables before passing them to bind_param
-				$endUser = $endUserId . ' ' . $endUserName;
-				
-				// Adjust bind_param types to match combined variables
-				$stmt->bind_param("issss", $assignment_id, $endUser, $status, $date_added, $date_archived);
-				$stmt->execute();
-				$stmt->close();
-			} else {
-				die('Error: ' . $this->conn->error);
-			}
-		
-			$logMessage = "'s inventory transferred assignment record has been archived.";
-			$account_id = $_SESSION['sess'];
-			$this->logTransaction('assignment', 'ARCHIVE', $assignment_id, $endUserName, $account_id, $logMessage);
-		
-			$this->archiveAssignmentItems($assignment_id); // Then archive the items belong to assignment record 
-		}
-		
-		
-
 		/* Archive inventory assignment items function (ics.php) */
-		public function archiveAssignmentItems($assignment_id) {
+		private function archiveAssignmentItems($assignment_id) {
 			$assignmentItems = $this->getAssignmentItemsById($assignment_id);
 
 			$insertQuery = "INSERT INTO inventory_assignment_archive_items (assignment_id, property_no, description, unit, qty, unit_cost, total_cost, acquisition_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
@@ -1059,24 +869,18 @@
 			}
 		}
 
-		/* Delete assignment record after succesfull moving to archive */
-		public function deleteAssignmentTransfer($assignment_id) {
-			$query = "DELETE FROM inventory_transfer WHERE id = ?";
-
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("i", $assignment_id);
-				$stmt->execute();
-				$stmt->close();
-			}
-		}
 
 		/* Get inventory assignment detail based on id (inventory-assignment.php) */
 		public function getAssignmentDetailById($assignment_id) {
 			$data = null;
-			$query = "SELECT i.*, e.id AS end_user_id, e.*, n.id AS status_id, n.note_name, n.module, n.color
+			$query = "SELECT i.id AS assignment_id, i.end_user, i.status, i.date_added,
+						e.id AS end_user_id, user_id, e.first_name, e.last_name,
+						n.id AS status_id, n.note_name, n.module, n.color,
+						u.username
 				FROM inventory_assignment i
 				LEFT JOIN end_user e ON i.end_user = e.id
 				LEFT JOIN note n ON i.status = n.id
+				LEFT JOIN users u ON e.user_id = u.id
 				WHERE i.id = ?";
 
 			if ($stmt = $this->conn->prepare($query)) {
@@ -1088,28 +892,9 @@
 			}
 			return $data;
 		}
-
-		/* Get inventory assignment detail based on id (inventory-assignment.php) */
-		public function getAssignmentTransferDetailById($transfer_id) {
-			$data = null;
-			$query = "SELECT i.*, e1.username AS old_username, e2.username AS new_username
-					  FROM inventory_transfer i
-					  LEFT JOIN end_user e1 ON i.old_end_user = e1.id
-					  LEFT JOIN end_user e2 ON i.new_end_user = e2.id
-					  WHERE i.id = ?";
-		
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("i", $transfer_id);
-				$stmt->execute();
-				$result = $stmt->get_result();
-				$data = $result->fetch_assoc();
-				$stmt->close();
-			}
-			return $data;
-		}
 		
 		
-		/* Check if Assignment ID already exist in assignment record */
+		/* Check if Assignment ID already exist in assignment record (archive-assignment.php) */
 		public function checkAssignmentIdExist($assignment_id) {
 			$data = null;
 			$query = "SELECT * FROM inventory_assignment WHERE id = ?";
@@ -1127,7 +912,7 @@
 				INVENTORY ASSIGNMENT ADDED ITEMS 
 		==========================================================*/
 
-		/* Check the property item status of specific assignment id */
+		/* Check the property item status of specific assignment id (inventory-assignment-add) */
 		public function checkAssignmentItemStatus($assignment_id, $property_no) {
 			$data = null;
 			$query = "SELECT * FROM inventory_assignment_item WHERE assignment_id = ? AND property_no = ?";
@@ -1146,7 +931,7 @@
 		}
 
 		/* Update property item if qty > 0 (inventory-assignment-add) */
-		public function updateAssignmentPropertyItem($location, $updated_qty, $total_cost, $assignment_id, $property_no, $endUser, $description, $unit) {
+		public function updateAssignmentPropertyItem($location, $updated_qty, $total_cost, $assignment_id, $property_no, $endUser, $description, $unit, $end_user_id) {
 			$query = "UPDATE inventory_assignment_item SET location = ?, qty = qty + ?, total_cost = total_cost + ? WHERE assignment_id = ? AND property_no = ?";
 
 			if ($stmt = $this->conn->prepare($query)) {
@@ -1156,15 +941,14 @@
 			} else {
 				die('Error: ' . $this->conn->error);
 			}
-			$logMessage = "'s '$updated_qty $unit' has been assigned to <b>$endUser</b>.";
-			$account_id = $_SESSION['sess'];
+			$logMessage = " '$updated_qty $unit' has been added to <b>$endUser</b>.";
 
-			$this->logTransaction('end_user', 'UPDATE', $endUser, $description, $account_id, $logMessage);
+			$this->logTransaction('end_user', 'UPDATE', $endUser, $description, $end_user_id, $logMessage);
 		}
 
 		
 
-		/* Update / return Qty per physical count to inventory record */
+		/* Update / return Qty per physical count to inventory record (inventory-assignment-add && create)*/
 		public function updateInventoryQtyPcountAfterAssigned($updated_qtyPcount, $property_no) {
 			$query = "UPDATE inventory SET qty_pcount = ? WHERE property_no = ?";
 
@@ -1178,7 +962,7 @@
 		}
 
 		/* Insert new property assignment if property no doesn't exist in assignment ID (inventory-assignment-add) X*/
-		public function insertAssignmentPropertyItem($assignment_id, $property_no, $description, $location, $unit, $updated_qty, $unit_cost, $total_cost, $acquisition_date, $end_user) {
+		public function insertAssignmentPropertyItem($assignment_id, $property_no, $description, $location, $unit, $updated_qty, $unit_cost, $total_cost, $acquisition_date, $end_user_name, $end_user_id) {
 			$query = "INSERT INTO inventory_assignment_item (assignment_id, property_no, description, location, unit, qty, unit_cost, total_cost, acquisition_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 			if ($stmt = $this->conn->prepare($query)) {
@@ -1186,41 +970,21 @@
 				$stmt->execute();
 				$stmt->close();
 
-				$inv_id = $inventories['inv_id'];
+				$logMessage = "'s  '$updated_qty $unit' has been assigned to <b>$end_user_name</b>.";
 
-				$logMessage = "'s  '$updated_qty $unit' has been assigned to <b>$end_user</b>.";
-				$account_id = $_SESSION['sess'];
-
-				$this->logTransaction('end_user', 'INSERT', $property_no, $description, $account_id, $logMessage);
+				$this->logTransaction('inventory', 'INSERT', $property_no, $description, $end_user_id, $logMessage);
 			} else {
 				die('Error: ' . $this->conn->error);
 			}
 		}
 
-		/* (inventory-assignment-transfer.php)*/
-		public function getAssignmentItemDetails($assignment_id, $property_no) {
-			$query = "SELECT * FROM inventory_assignment_item WHERE assignment_id = ? AND property_no = ?";
-		
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("is", $assignment_id, $property_no);
-				$stmt->execute();
-				$result = $stmt->get_result();
-				$details = $result->fetch_assoc();
-				$stmt->close();
-				return $details;
-
-			} else {
-				die('Error: ' . $this->conn->error);
-			}
-		}
-
-		
+	
 		
 		/*========================================
 			INVENTORY ASSIGNMENT EDIT ITEMS
 		==========================================*/
 
-		// DISPLAY INVENTORY RECORD BASED ON ID (par-view.php)
+		// get assignment property items based on id (inventory-assignment-edit)
 		public function getAssignmentPropertyItems($assignment_id) {
 			$data = null;
 			$query = "SELECT * FROM inventory_assignment_item WHERE assignment_id = ?";
@@ -1238,7 +1002,7 @@
 			return $data;
 		}
 
-		// Function to add inventory quantity back to qty_pcount (par-edit-inv)
+		// Function to add inventory quantity back to qty_pcount (inventory-assignment-edit)
 		public function addInventoryQtyPcountFromAssignment($property_no, $qty, $assignment_id) {
 			$query = "UPDATE inventory SET qty_pcount = qty_pcount + ? WHERE property_no = ?";
 			if ($stmt = $this->conn->prepare($query)) {
@@ -1255,14 +1019,15 @@
 			$unitName = $unitDetail['unit_name'];
 
 			$assignment_detail = $this->getAssignmentDetailById($assignment_id);
-			$endUserName = $assignment_detail['end_user_name'];
+			$endUserName = $assignment_detail['username'];
 
-			$logMessage = "'s, '$qty $unitName' has been returned to inventory record from <b>$endUser inventory assignment</b>.";
+			$logMessage = "'s, '$qty $unitName' has been returned to inventory record from <b>$endUserName inventory assignment</b>.";
 			$account_id = $_SESSION['sess'];
 
-			$this-> logTransaction('inventory', 'UPDATE', $property_no, $description, $account_id, $logMessage);
+			$this-> logTransaction('inventory', 'RETURNED', $property_no, $description, $account_id, $logMessage);
 		}
 
+		// Delete assignment items if returned/unchecked (inventory-assignment-edit)
 		public function deleteAssignmentItems($property_no, $assignment_id) {
 
 			$inventories = $this->getInventoryDetailByPropertyNo($property_no);
@@ -1270,12 +1035,12 @@
 			$inv_id = $inventories['inv_id'];
 	
 			$assignment_detail = $this->getAssignmentDetailById($assignment_id);
-			$endUser = $assignment_detail['end_user'];
+			$endUserId = $assignment_detail['end_user_id'];
+			$endUsername = $assignment_detail['username'];
 	
-			$logMessage = "'s has been removed from $endUser assignments.";
-			$account_id = $_SESSION['sess'];
+			$logMessage = "'s has been removed from <b>$endUsername assignments</b>.";
 	
-			$this->logTransaction('end_user', 'UPDATE', $endUser, $description, $account_id, $logMessage);
+			$this->logTransaction('assignment', 'DELETE', $property_no, $description, $endUserId, $logMessage);
 	
 			$query = "DELETE FROM inventory_assignment_item WHERE property_no = ? AND assignment_id = ?";
 			if ($stmt = $this->conn->prepare($query)) {
@@ -1310,11 +1075,11 @@
 			
 			$assignment_detail = $this->getAssignmentDetailById($assignment_id);
 			$endUserName = $assignment_detail['username'];
+			$endUserId = $assignment_detail['end_user_id'];
 
-			$logMessage = "'s from $endUserName <b>Inventory assignment</b> has been updated. '$qty $unit' to '$newQty $unit'.";
-			$account_id = $_SESSION['sess'];
+			$logMessage = "'s from <b>$endUserName Inventory assignment</b> has been updated. From '$qty $unit' to '$newQty $unit'.";
 
-			$this-> logTransaction('end_user', 'UPDATE', $endUser, $description, $account_id, $logMessage);
+			$this-> logTransaction('assignment', 'UPDATE', $assignment_id, $description, $endUserId, $logMessage);
 		}
 
 		/* Update the location of assigned property (inventory-assignment-edit.php) */
@@ -1334,234 +1099,20 @@
 			
 			$assignment_detail = $this->getAssignmentDetailById($assignment_id);
 			$endUser = $assignment_detail['username'];
+			$endUserId = $assignment_detail['end_user_id'];
 
-			$logMessage = "'s from <b>$endUserName Inventory assignment</b> has been updated. Location:  '$location' to '$newLocation'.";
-			$account_id = $_SESSION['sess'];
+			$logMessage = "'s from <b>$endUser Inventory assignment</b> has been updated. Location:  '$location' to '$newLocation'.";
 
-			$this-> logTransaction('end_user', 'UPDATE', $endUser, $description, $account_id, $logMessage);
+			$this-> logTransaction('assignment', 'UPDATE', $assignment_id, $description, $endUserId, $logMessage);
 		}
-
-		/*===========================================
-				Inventory Assignment Transfer
-		============================================*/
-
-		// Remove property assignment item
-		public function removeAssignmentPropertyItem($assignment_id, $property_no) {
-			$query = "DELETE FROM inventory_assignment_item WHERE assignment_id = ? AND property_no = ?";
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("is", $assignment_id, $property_no);
-				$stmt->execute();
-				$stmt->close();
-			}
-		}
-
-		/* Insert new property assignment if property no doesn't exist in assignment ID (inventory-assignment-add) X*/
-		public function insertTransferPropertyItem($transfer_id, $property_no, $description, $location, $unit, $updated_qty, $unit_cost, $total_cost, $acquisition_date) {
-			$query = "INSERT INTO inventory_transfer_item (transfer_id, property_no, description, location, unit, qty, unit_cost, total_cost, acquisition_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("issssidds", $transfer_id, $property_no, $description, $location, $unit, $updated_qty, $unit_cost, $total_cost, $acquisition_date);
-				$stmt->execute();
-				$stmt->close();
-
-				// Get inventory number by property number
-				$inventories = $this->getInventoryDetailByPropertyNo($property_no);
-				$inv_id = $inventories['inv_id'];
-
-				$assignmentDetail = $this->getAssignmentTransferDetailById($transfer_id);
-				$newUsername = $assignmentDetail['new_username'];
-				$oldUsername = $assignmentDetail['old_username'];
-
-				$logMessage = "'s '$updated_qty $unit' has been tranferred. From '$oldUsername' to '$newUsername'.";
-				$account_id = $_SESSION['sess'];
-
-				$this->logTransaction('assignment', 'INSERT', $property_no, $description, $account_id, $logMessage);
-			} else {
-				die('Error: ' . $this->conn->error);
-			}
-		}
-
-		/* Get inventory assignment detail based on id (inventory-assignment.php) */
-		public function getTransferItemsById($transfer_id) {
-			$data = null;
-			$query = "SELECT * FROM inventory_transfer_item WHERE transfer_id = ?";
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("i", $transfer_id);
-				$stmt->execute();
-				$result = $stmt->get_result();
-				$num_of_rows = $stmt->num_rows;
-				while ($row = $result->fetch_assoc()) {
-					$data[] = $row;
-				}
-				$stmt->close();
-			}
-			return $data;
-		}
-
-		// DISPLAY INVENTORY RECORD BASED ON ID (par-view.php)
-		public function getInventoryTransferPropertyItems($transfer_id) {
-			$data = null;
-			$query = "SELECT * FROM inventory_transfer_item WHERE transfer_id = ?";
-
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("i", $transfer_id);
-				$stmt->execute();
-				$result = $stmt->get_result();
-				$num_of_rows = $stmt->num_rows;
-				while ($row = $result->fetch_assoc()) {
-					$data[] = $row;
-				}
-				$stmt->close();
-			}
-			return $data;
-		}
-
-		public function deleteAssignmentTransfertItems($property_no, $assignment_id, $description) {
-
 	
-			$assignment_detail = $this->getAssignmentTransferDetailById($assignment_id);
-			$endUser = $assignment_detail['new_end_user_name'];
-	
-			$logMessage = "'s has been removed from $endUser assignments.";
-			$account_id = $_SESSION['sess'];
-	
-			$this->logTransaction('end_user', 'UPDATE', $endUser, $description, $account_id, $logMessage);
-	
-			$query = "DELETE FROM inventory_transfer_item WHERE property_no = ? AND transfer_id = ?";
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("si", $property_no, $assignment_id); 
-				$stmt->execute();
-				$stmt->close();
-			} else {
-				die('Error: ' . $this->conn->error);
-			}
-		}
-
-		/* Update the location of assigned property (inventory-assignment-edit.php) */
-		public function updateAssignmentTransferItemLocation($assignment_id, $property_no, $newLocation, $location, $description) {
-
-			$query = "UPDATE inventory_transfer_item SET location = ? WHERE assignment_id = ? AND property_no = ?";
-
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("sis", $newLocation, $assignment_id, $property_no);
-				$stmt->execute();
-				$stmt->close();
-			}
-
-			$logMessage = "'s from $endUser <b>Inventory assignment</b> has been updated. Location:  '$location' to '$newLocation'.";
-			$account_id = $_SESSION['sess'];
-
-			$this-> logTransaction('end_user', 'UPDATE', $endUser, $description, $account_id, $logMessage);
-		}
-
-		/* Add property quantity back to inventory record */
-		public function addInventoryQtyPcountFromAssignmentTransfer($property_no, $qty, $assignment_id, $end_user) {
-			$query = "UPDATE inventory SET qty_pcount = qty_pcount + ? WHERE property_no = ?";
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("is", $qty, $property_no);
-				$stmt->execute();
-				$stmt->close();
-			}
-
-			$assignment_items = $model->getTransferItemsById($assignment_id);
-			$description = $assignment_items['description'];
-			$unit = $assignment_items['unit'];
-
-
-			$logMessage = "'s, '$qty $unit' has been returned to inventory record from <b>$end_user inventory assignment</b>.";
-			$account_id = $_SESSION['sess'];
-
-			$this-> logTransaction('inventory', 'UPDATE', $property_no, $description, $account_id, $logMessage);
-		}
-
-		/* Update proerty item if qty > 0 (inventory-assignment-add) */
-		/* Update property item if qty > 0 (inventory-assignment-add) */
-		public function updateAssignmentPropertyItemAfterTransfer($remaining_qty, $old_assignment_id, $property_no, $new_assignment_id) {
-			$query = "UPDATE inventory_assignment_item SET qty = ?, total_cost = unit_cost * ? WHERE assignment_id = ? AND property_no = ?";
-		
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("idis", $remaining_qty, $remaining_qty, $old_assignment_id, $property_no);
-				$stmt->execute();
-				$stmt->close();
-			} else {
-				die('Error: ' . $this->conn->error);
-			}
-		
-			// Get inventory details by property no
-			$inventories = $this->getInventoryDetailByPropertyNo($property_no);
-			$description = $inventories['description'];
-			$unit = $inventories['unit_name'];
-			$inv_id = $inventories['inv_id'];
-
-			$transferDetail = $this->getAssignmentTransferDetailById($new_assignment_id);
-			$userName = $transferDetail['new_username'];
-		
-			$logMessage = "'s '$remaining_qty $unit' has been assigned to <b>$userName</b>.";
-			$account_id = $_SESSION['sess'];
-		
-			$this->logTransaction('end_user', 'UPDATE', $userName, $description, $account_id, $logMessage);
-		}
-
-		public function getAssignmentTransferItemDetails($transfer_id, $property_no) {
-			$query = "SELECT * FROM inventory_transfer_item WHERE transfer_id = ? AND property_no = ?";
-		
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("is", $transfer_id, $property_no);
-				$stmt->execute();
-				$result = $stmt->get_result();
-				$details = $result->fetch_assoc();
-				$stmt->close();
-				return $details;
-
-			} else {
-				die('Error: ' . $this->conn->error);
-			}
-		}
-		
-		
 
 		/*===========================================
 					Assignment Acitivity logs
 		============================================*/
 
-		/* Log Assignment update transaction function */
-		public function logTransactionAssignmentUpdate($oldValues, $newValues) {
-			$logMessage = "'s <b>inventory assignment</b> has been updated. ";
-			$account_id = $_SESSION['sess'];
-			$end_user = $oldValues['end_user'];
-			$assignment_id = $oldValues['id'];
 
-			$endUserDetail = $this->getEndUserDetailByID($end_user);
-			$oldEndUser = $endUserDetail['end_user_name'];
-
-			$oldStatusDetail = $this->getNoteDetailByID($oldValues['status']);
-			
-			
-			$changes = array();
-			
-			// Check if the end user is changed
-			if ($oldValues['end_user'] !== $newValues['end_user']) {
-				$endUserDetail = $this->getEndUserDetailByID($newValues['end_user']);
-			
-				$changes[] = "Accountable end user has been updated from '{$oldEndUser}' to '{$endUserDetail['end_user_name']}'";
-			}
-
-			// Check if the status is changed
-			if ($oldValues['status'] !== $newValues['status']) {
-				$newStatusDetail = $this->getNoteDetailByID($newValues['status']);
-
-				$changes[] = "Status updated from '{$oldStatusDetail['note_name']}' to '{$newStatusDetail['note_name']}'";
-			}
-			
-
-			if (!empty($changes)) {
-				$logMessage = $logMessage . implode(', ', $changes);
-
-				$this->logTransaction('assignment', 'UPDATE', $assignment_id, $oldEndUser, $account_id, $logMessage);
-			}	
-		}
-
-		/* Log Inventory custodian slip archive restore transaction function */
+		/* Log Inventory custodian slip archive restore transaction function (archive-assignment) */
 		public function logAssignmentRestoreTransaction($assignment_id, $endUser, $date_archived) {
 			$logMessage = "'s inventory assignment record has been restored, where archived last <b>$date_archived</b> in Inventory Assignment archives.";
 			$account_id = $_SESSION['sess'];
@@ -1569,41 +1120,12 @@
 			$this->logTransaction('assignment', 'INSERT', $assignment_id, $endUser, $account_id, $logMessage);
 		}
 
-		//Update inventory assignment transfer item qty(inventory-assignment-transfer-edit.php)
-		public function updateAssignmentTransferItemsQty($assignment_id, $property_no, $newQty, $qty) {
-
-			if($newQty == 0) {
-				$cost = 1;
-			} else {
-				$cost = $newQty;
-			}
-
-			$query = "UPDATE inventory_transfer_item SET qty = ?, total_cost = unit_cost * ? WHERE assignment_id = ? AND property_no = ?";
-
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("iiis", $newQty, $cost, $assignment_id, $property_no);
-				$stmt->execute();
-				$stmt->close();
-			}
-
-			$inventories = $this->getInventoryDetailByPropertyNo($property_no);
-			$description = $inventories['description'];
-			$unit = $inventories['unit_name'];
-			
-			$endUser = $assignment_detail['end_user'];
-
-
-			$logMessage = "'s from $endUser <b>Inventory assignment</b> has been updated. '$qty $unit' to '$newQty $unit'.";
-			$account_id = $_SESSION['sess'];
-
-			$this-> logTransaction('end_user', 'UPDATE', $endUser, $description, $account_id, $logMessage);
-		}
-
+		
 		/*====================================================================
 							INVENTORY ASSIGNMENT ARCHIVES
 		====================================================================*/
 
-		/* Get or display all inventory assignment archive */
+		/* Get or display all inventory assignment archive (archive-assignment) */
 		public function getAssignmentArchives() {
 			$data = null;
 			$query = "SELECT * FROM inventory_assignment_archive ";
@@ -1620,6 +1142,7 @@
 			return $data;
 		}
 
+		// Get assigned items of archive assignment (archive-assignment)
 		public function getAssignmentItemsArchives($assignment_id) {
 			$data = null;
 			$query = "SELECT * FROM inventory_assignment_archive_items WHERE assignment_id = ?";
@@ -1638,7 +1161,7 @@
 		}
 
 		
-		//RESTORE ICS RECORD (ics_archive.php)
+		// Restore arhived assignment (archive-assignment)
 		public function restoreAssignment($assignment_id, $end_user, $date_added, $archive_id) {
 			$date_added = date("Y-m-d H:i:s");
 			$status = "0";
@@ -1654,10 +1177,9 @@
 			$this->restoreAssignmentItems($assignment_id);		
 		}
 
-		public function restoreAssignmentItems($assignment_id) {
+		private function restoreAssignmentItems($assignment_id) {
 			$assignmentItems = $this->getAssignmentItemsArchives($assignment_id);
 		
-			// INSERT new records
 			$query = "INSERT INTO inventory_assignment_item (assignment_id, property_no, description, unit, qty, unit_cost, total_cost, acquisition_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 		
 			if ($insertStmt = $this->conn->prepare($query)) {
@@ -1670,8 +1192,6 @@
 						$unit_cost = $assignmentItem['unit_cost'];
 						$total_cost = $assignmentItem['total_cost'];
 						$acquisition_date = $assignmentItem['acquisition_date'];
-		
-						// Corrected variable name here
 						$insertStmt->bind_param("isssssss", $assignment_id, $property_no, $description, $unit, $qty, $unit_cost, $total_cost, $acquisition_date);
 						$insertStmt->execute();
 					}
@@ -1700,35 +1220,51 @@
 				END USERS PRIMARY CRUD
 		===========================================*/
 
-		/* Insert new end user data (end-user.php) */
 		public function createEndUser($username, $firstName, $middleName, $lastName, $birthday, $sex, $email, $password, $contact, $designation) {
-			$query = "INSERT INTO end_user (username, first_name, middle_name, last_name, email, contact, designation, sex, birthday, status, date_registered) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
+			
 			$hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 			$dateCreated = date("Y-m-d H:i:s");
-			$statusActive = '1';
-			
+			$user_role = '3'; // end_user role
+		
+			$query = "INSERT INTO users (role_id, username, password, date_created) VALUES (?, ?, ?, ?)";
 			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("sssssiissis", $username, $firstName, $middleName, $lastName, $email, $contact, $designation, $sex, $birthday, $statusActive, $dateCreated);
+				$stmt->bind_param("isss", $user_role, $username, $hashedPassword, $dateCreated);
+				if (!$stmt->execute()) {
+					$stmt->close();
+					return false; 
+				}
+				$user_id = $this->conn->insert_id;  // Get the inserted user's ID
+				$stmt->close();
+			} else {
+				return false; 
+			}
+		
+			// Now insert the end_user using the user_id from the 'users' table
+			$query = "INSERT INTO end_user (user_id, first_name, middle_name, last_name, email, contact, designation, sex, birthday, status, date_registered) 
+					  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+			$statusActive = '1';
+		
+			if ($stmt = $this->conn->prepare($query)) {
+				$stmt->bind_param("issssiissis", $user_id, $firstName, $middleName, $lastName, $email, $contact, $designation, $sex, $birthday, $statusActive, $dateCreated);
 				if ($stmt->execute()) {
 					$stmt->close();
-					
-					$logMessage = "'s has been added to <b>End user</b> records.";    
+		
+					// Log transaction
+					$logMessage = "'s has been added to <b>End User</b> records.";
 					$accountId = $_SESSION['sess'];
 					$endUserName = $firstName . ' ' . $lastName;
-
 					$this->logTransaction('end_user', 'INSERT', $endUserName, $endUserName, $accountId, $logMessage);
-					$this->createEndUserNewUser($username, $hashedPassword, $date_created);
 		
 					return true;
 				} else {
 					$stmt->close();
-					return false;
+					return false; 
 				}
-				
 			}
+		
 			return false;
 		}
+		
 		
 
 		/* checked if the username is already exist */
@@ -1749,30 +1285,15 @@
 			}
 		}	
 		
-		public function oldusername($username) {
-			$query = "SELECT COUNT(*) FROM end_user WHERE username = ?";
-			
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("s", $username);
-				$stmt->execute();
-				$stmt->bind_result($count);
-				$stmt->fetch();
-				$stmt->close();
-				
-				return $count > 0;
-			} else {
-				// Handle error
-				return false;
-			}
-		}				
-
+		
 		/* Get/Display all end users data (end-user.php) */
 		public function getEndUser() {
 			$data = null;
-			$query = "SELECT e.id AS end_user_id, e.*, d.id AS designation_id, d.designation_name
+			$query = "SELECT e.id AS end_user_id, e.user_id, e.first_name, e.middle_name, e.last_name, e.email, e.contact, e.designation, e.sex, e.birthday, e.status, e.date_registered, d.id AS designation_id, d.designation_name, u.id AS user_id, u.role_id, u.username, u.password, u.date_created  
 				FROM end_user e
 				LEFT JOIN designation d ON e.designation = d.id
-				ORDER BY date_registered  DESC";
+				LEFT JOIN users u ON e.user_id = u.id
+				ORDER BY e.date_registered  DESC";
 			if ($stmt = $this->conn->prepare($query)) {
 				$stmt->execute();
 				$result = $stmt->get_result();
@@ -1785,45 +1306,28 @@
 			return $data;
 		}
 
-		/* Get/Display all end users data (end-user.php) */
-		public function getEndUserWithCount() {
-			$data = null;
-			$query = "SELECT e.id AS end_user_id, e.* , SUM(a.qty) AS inventory_count, d.id AS designation_id, d.designation_name
-				FROM end_user e
-				LEFT JOIN inventory_assignment i ON i.end_user = e.id 
-				LEFT JOIN inventory_assignment_item a ON a.assignment_id = i.id
-				LEFT JOIN designation d ON e.designation = d.id
-				ORDER BY date_registered  DESC";
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->execute();
-				$result = $stmt->get_result();
-				$num_of_rows = $stmt->num_rows;
-				while ($row = $result->fetch_assoc()) {
-					$data[] = $row;
-				}
-				$stmt->close();
-			}
-			return $data;
-		}
 
-		/* Update End user data (model.php) */
+		/* Update End user data (end-user.php) */
 		public function updateEndUser($username, $firstName, $middleName, $lastName, $birthday, $sex, $email, $contact, $designation, $endUser_id) {
 			
-			// Proceed with update if username exists in users
-			$query = "UPDATE end_user SET username = ?, first_name = ?, middle_name = ?, last_name = ?, email = ?, contact = ?, designation = ?, sex = ?, birthday = ? WHERE id = ?";
-		
+			$query = "UPDATE users SET username = ? WHERE id = (SELECT user_id FROM end_user WHERE id = ?)";
 			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("sssssiissi", $username, $firstName, $middleName, $lastName, $email, $contact, $designation, $sex, $birthday, $endUser_id);
+				$stmt->bind_param("si", $username, $endUser_id);
 				$stmt->execute();
 				$stmt->close();
-			} else {
-				echo "Error: " . $this->conn->error;
+			}
+		
+			$query = "UPDATE end_user SET first_name = ?, middle_name = ?, last_name = ?, email = ?, contact = ?, designation = ?, sex = ?, birthday = ? WHERE id = ?";
+
+			if ($stmt = $this->conn->prepare($query)) {
+				$stmt->bind_param("ssssiissi", $firstName, $middleName, $lastName, $email, $contact, $designation, $sex, $birthday, $endUser_id);
+				$stmt->execute();
+				$stmt->close();
 			}
 		}
 		
-		
 
-		/* Update End user data (model.php) */
+		/* Update End user data (end-user.php) */
 		public function updateEndUserStatus($status, $endUser_id) {
 			// Get current user details
 		
@@ -1838,57 +1342,13 @@
 			}
 		}
 
-
-		public function emailExists($username, $excludeUserId = null) {
-			$query = "SELECT COUNT(*) FROM end_user WHERE username = ?";
-			
-			if ($excludeUserId !== null) {
-				$query .= " AND id != ?";
-			}
-			
-			if ($stmt = $this->conn->prepare($query)) {
-				if ($excludeUserId !== null) {
-					$stmt->bind_param("si", $username, $excludeUserId);
-				} else {
-					$stmt->bind_param("s", $username);
-				}
-				$stmt->execute();
-				$stmt->bind_result($count);
-				$stmt->fetch();
-				$stmt->close();
-				
-				return $count > 0;
-			} else {
-				// Handle error
-				return false;
-			}
-		}
-		
-				
-		/* Delete end user record */
-		public function deleteEndUser($endUser_id) {
-			$endUser = $this->getEndUserDetailByID($endUser_id);
-			$endUser_name = $endUser['end_user_name']; 
-			$account_id = $_SESSION['sess'];
-			$logMessage = "'s has been deleted from <b>End user</b> records.";
-			
-			$this->logTransaction('end_user', 'DELETE', $endUser_name, $endUser_name, $account_id, $logMessage); //Log transaction
-
-			$query = "DELETE FROM end_user WHERE id = ?";
-
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("i", $endUser_id);
-				$stmt->execute();
-				$stmt->close();
-			}
-		}
-
-		/* Get end user by Id (report-assignment.php) */
+		/* Get end user by Id (report-assignment && end-user) */
 		public function getEndUserDetailByID($endUser_id) {
 			$data = null;
-			$query = "SELECT e.*, d.id AS designation_id, d.designation_name
-					FROM end_user e 
-					LEFT JOIN designation d ON e.designation = d.id 
+			$query = "SELECT e.*, d.id AS designation_id, d.designation_name, u.username
+					FROM end_user e
+					LEFT JOIN designation d ON e.designation = d.id
+					LEFT JOIN users u ON e.user_id = u.id
 					WHERE e.id = ?";
 
 			if ($stmt = $this->conn->prepare($query)) {
@@ -1901,7 +1361,6 @@
 			return $data;
 		}
 
-		
 		/* Get all inventory detail belong to particular End User (report-assignment.php)*/
 		public function getEndUserAssignment($endUser) {
 			$data = null;
@@ -1924,35 +1383,15 @@
 			return $data;
 		}
 
-		/* Get transferred inventory assignment belong to End User (report-assignment.php)*/
-		public function getEndUserTransferredAssignment($endUser) {
-			$data = null;
-			$query = "SELECT t.*, i.*, e.*
-					FROM inventory_transfer t
-					LEFT JOIN inventory_transfer_item i ON t.id = i.transfer_id
-					LEFT JOIN end_user e ON t.new_end_user = e.id
-					WHERE t.new_end_user = ?";
-
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("i", $endUser);
-				$stmt->execute();
-				$result = $stmt->get_result();
-				$num_of_rows = $stmt->num_rows;
-				while ($row = $result->fetch_assoc()) {
-					$data[] = $row;
-				}
-				$stmt->close();
-			}
-			return $data;
-		}
-
+		
 		/* Get all inventory assignments to end user (report-assignment.php) */
 		public function getAllInventoryAssignment() {
 			$data = null;
-			$query = "SELECT a.*, i.*, e.*
+			$query = "SELECT a.*, i.*, e.*, u.username
 					FROM inventory_assignment a
 					LEFT JOIN inventory_assignment_item i ON a.id = i.assignment_id
 					LEFT JOIN end_user e ON a.end_user = e.id
+					LEFT JOIN users u ON e.user_id = u.id
 					ORDER BY a.date_added DESC";
 
 			if ($stmt = $this->conn->prepare($query)) {
@@ -1967,61 +1406,17 @@
 			return $data;
 		}
 
-		/* Get all transferred inventory assignments to end user (report-assignment.php) */
-		public function getAllTransferredInventoryAssignment() {
-			$data = null;
-			$query = "SELECT t.*, i.*, e.username AS new_end_user
-					FROM inventory_transfer t
-					LEFT JOIN inventory_transfer_item i ON t.id = i.transfer_id
-					LEFT JOIN end_user e ON t.new_end_user = e.id
-					ORDER BY t.date_transferred DESC";
-
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->execute();
-				$result = $stmt->get_result();
-				$num_of_rows = $stmt->num_rows;
-				while ($row = $result->fetch_assoc()) {
-					$data[] = $row;
-				}
-				$stmt->close();
-			}
-			return $data;
-		}
-
-		/*================================================
-					END USER INVENTORY
-		=================================================*/
-
-		public function getInventoryByEndUserId($end_user_id) {
-			$data = [];
-			$query = "SELECT i.id AS item_id, i.property_no, i.description, i.location, i.unit, i.qty, i.unit_cost, i.total_cost, i.acquisition_date, a.date_added
-					  FROM inventory_assignment a
-					  INNER JOIN inventory_assignment_item i ON a.id = i.assignment_id
-					  WHERE a.end_user = ?";
-		
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("i", $end_user_id);
-				$stmt->execute();
-				$result = $stmt->get_result();
-				while ($row = $result->fetch_assoc()) {
-					$data[] = $row;
-				}
-				$stmt->close();
-			}
-			return $data;
-		}
-		
 		
 
 		/*===========================================
-				Fund Cluster Acitivity logs
+				End Users Acitivity logs
 		============================================*/
 
 		/* Log Fund Cluster update transaction function */
 		public function logEndUserUpdateTransaction($oldValues, $newValues) {
 			$logMessage = " end user's record has been updated. ";
 			$account_id = $_SESSION['sess'];
-			$endUsername = $oldValues['username'];
+			$endUsername = $newValues['username'];
 			
 			$changes = array();
 			
@@ -2086,7 +1481,7 @@
 					Category Fetch  Detail
 		============================================*/
 		
-		/* Get all category details (inventory.php)*/
+		/* Get all category details (inventory || category.php)*/
 		public function displayCategories() {
 			$data = null;
 			$query = "SELECT * FROM category ORDER BY id DESC";
@@ -2103,7 +1498,7 @@
 			return $data;
 		}
 
-		/* Get category detail by Category id */
+		/* Get category detail by Category id (category-view && report)*/
 		public function getCategoryDetailByID($category_id) {
 			$data = null;
 			$query = "SELECT * FROM category WHERE id = ?";
@@ -2415,7 +1810,7 @@
 			return $data;
 		}
 		
-		/* Get location detail by Location id */
+		/* Get location detail by Location id (location-view && report)*/
 		public function getLocationDetailsById($location_id) {
 
 			$query = "SELECT * FROM location WHERE id = ?";
@@ -2457,9 +1852,7 @@
 		/*===========================================
 				LOCATIONS PRIMARY CRUD
 		===========================================*/
-
 		
-
 		/* Insert new location record (location.php) */
 		public function insertLocation($location_name) {
 			$insertLocation = "INSERT INTO location (location_name) VALUES (?)";
@@ -2551,8 +1944,6 @@
 				$this->logTransaction('location', 'UPDATE', $location_name, $location_name, $account_id, $logMessage);
 			}	
 		}
-
-
 		
 
 		 /*==================================================================//
@@ -2813,11 +2204,10 @@
 			}
 		}
 
-		/* Get total count of assignment */
+		/* Get total count of assignment (index.php) */
 		public function getTotalAssignmentRecords() {
 			// Assuming $this->conn is a valid database connection
-			$query = "SELECT (SELECT COUNT(*) FROM inventory_assignment) AS total_assignment, 
-							 (SELECT COUNT(*) FROM inventory_transfer) AS total_transfer";
+			$query = "SELECT (SELECT COUNT(*) FROM inventory_assignment) AS total_assignment";
 			
 			if ($stmt = $this->conn->prepare($query)) {
 				$stmt->execute();
@@ -2826,16 +2216,14 @@
 				if ($result) {
 					$row = $result->fetch_assoc();
 					if ($row) {
-						$totalRecords = $row['total_assignment'] + $row['total_transfer'];
+						$totalRecords = $row['total_assignment'];
 						$stmt->close();
 						return $totalRecords;
 					} else {
-						// Handle case where fetch_assoc returns false
 						$stmt->close();
 						throw new Exception("No records found.");
 					}
 				} else {
-					// Handle case where get_result returns false
 					$stmt->close();
 					throw new Exception("Error retrieving result set.");
 				}
@@ -2901,9 +2289,6 @@
 		}
 		
 		
-		
-		
-
 		/*=============================================
 						R E P O R T S
 		=============================================*/
@@ -2996,33 +2381,12 @@
 		/* Get all inventory assignment of end user */
 		public function getEndUserAssignmentReport($end_user, $fromDate, $toDate) {
 			$data = null;
-			$query = "SELECT i.*, c.*, e.username
+			$query = "SELECT i.*, c.*, e.user_id, u.username
 					  FROM inventory_assignment i
 					  LEFT JOIN inventory_assignment_item c ON i.id = c.assignment_id
 					  LEFT JOIN end_user e ON i.end_user = e.id
+					  LEFT JOIN users u ON e.user_id = u.id
 					  WHERE i.end_user = ? AND i.date_added BETWEEN ? AND ?";
-
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("sss", $end_user, $fromDate, $toDate);
-				$stmt->execute();
-				$result = $stmt->get_result();
-				$num_of_rows = $stmt->num_rows;
-				while ($row = $result->fetch_assoc()) {
-					$data[] = $row;
-				}
-				$stmt->close();
-			}
-			return $data;
-		}
-
-		/* Get all inventory assignment of end user */
-		public function getEndUserTransferredAssignmentReport($end_user, $fromDate, $toDate) {
-			$data = null;
-			$query = "SELECT t.*, i.*, e.username
-					  FROM inventory_transfer t
-					  LEFT JOIN inventory_transfer_item i ON t.id = i.transfer_id
-					  LEFT JOIN end_user e ON t.new_end_user = e.id
-					  WHERE t.new_end_user = ? AND t.date_transferred BETWEEN ? AND ?";
 
 			if ($stmt = $this->conn->prepare($query)) {
 				$stmt->bind_param("sss", $end_user, $fromDate, $toDate);
@@ -3041,33 +2405,12 @@
 		/* All end user assignment */
 		public function getAllEndUserAssignmentReport($fromDate, $toDate) {
 			$data = null;
-			$query = "SELECT i.*, c.*, e.username
+			$query = "SELECT i.*, c.*, e.user_id, u.username
 					  FROM inventory_assignment i
 					  LEFT JOIN inventory_assignment_item c ON i.id = c.assignment_id
 					  LEFT JOIN end_user e ON i.end_user = e.id
+					  LEFT JOIN users u ON e.user_id = u.id
 					  WHERE i.date_added BETWEEN ? AND ?";
-
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("ss", $fromDate, $toDate);
-				$stmt->execute();
-				$result = $stmt->get_result();
-				$num_of_rows = $stmt->num_rows;
-				while ($row = $result->fetch_assoc()) {
-					$data[] = $row;
-				}
-				$stmt->close();
-			}
-			return $data;
-		}
-
-		/* All end user assignment */
-		public function getAllEndUserTransferredAssignmentReport($fromDate, $toDate) {
-			$data = null;
-			$query = "SELECT t.*, i.*, e.username AS new_end_user
-					  FROM inventory_transfer t
-					  LEFT JOIN inventory_transfer_item i ON t.id = i.transfer_id
-					  LEFT JOIN end_user e ON t.new_end_user = e.id
-					  WHERE t.date_transferred BETWEEN ? AND ?";
 
 			if ($stmt = $this->conn->prepare($query)) {
 				$stmt->bind_param("ss", $fromDate, $toDate);
@@ -3464,7 +2807,6 @@
 			}	
 		}
 
-	
 
 		/*==================================================
 					INVENTORY ASSIGNMENT VIEW 
@@ -3473,11 +2815,12 @@
 		public function displayPropertyAsssignments($property_no) {
 			$data = null;
 		
-			$query = "SELECT a.*, i.*, e.*, n.id AS status_id, n.note_name, n.module, n.color
+			$query = "SELECT a.*, i.*, e.*, n.id AS status_id, n.note_name, n.module, n.color, u.username
 					  FROM inventory_assignment a
 					  LEFT JOIN inventory_assignment_item i ON a.id = i.assignment_id
 					  LEFT JOIN end_user e ON a.end_user = e.id
 					  LEFT JOIN note n ON a.status = n.id
+					  LEFT JOIN users u ON e.user_id = u.id
 					  WHERE i.property_no = ?";
 		
 			if ($stmt = $this->conn->prepare($query)) {
@@ -3492,26 +2835,6 @@
 			return $data;
 		}
 
-		public function displayPropertyTransfer($property_no) {
-			$data = null;
-		
-			$query = "SELECT t.*, i.*, e.*
-					  FROM inventory_transfer_item i
-					  LEFT JOIN inventory_transfer t ON i.transfer_id = t.id
-					  LEFT JOIN end_user e ON t.new_end_user = e.id
-					  WHERE i.property_no = ?";
-		
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("s", $property_no);
-				$stmt->execute();
-				$result = $stmt->get_result();
-				while ($row = $result->fetch_assoc()) {
-					$data[] = $row;
-				}
-				$stmt->close();
-			}
-			return $data;
-		}
 
 		// DISPLAY INVENTORY RECORD BASED ON ID (inventory-view.php)
 		public function getInventoryByInvNo($inv_id) {
@@ -3560,7 +2883,7 @@
 			}
 		}
 
-		// DISPLAY INVENTORY RECORD BASED ON ID (inventory-view.php)
+		// DISPLAY INVENTORY RECORD BASED ON ID (inventory-assignment-add.php)
 		public function getInventoryDetailsByInvId($inv_id) {
 			$query = "SELECT i.*, c.id as category_id, c.category_name, l.id as location_id, l.location_name, u.id as unit_id, u.unit_name, e.id as est_life_id, e.est_life, n.id as note_id, n.note_name
 					  FROM inventory i
@@ -3586,7 +2909,7 @@
 			}
 		}
 
-		//UPDATE INVENTORY RECORD (ics-add-inv)
+		//UPDATE INVENTORY RECORD (inventory-assignment-add)
 		public function updateInventoryQtyPcount($updated_qtyPcount, $inv_id) {
 			$query = "UPDATE inventory SET qty_pcount = ? WHERE inv_id = ?";
 
@@ -3599,62 +2922,10 @@
 			}
 		}
 
-		public function displayICSView($ics_id) {
-			$data = null;
-			$query = "SELECT * FROM inventory WHERE inv_id = ?";
-		
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("i", $ics_id);
-				$stmt->execute();
-				$result = $stmt->get_result();
-				$data = $result->fetch_assoc();
-				$stmt->close();
-			}
-			return $data;
-		}
-		
-
-		/* Add inventory quantity back to inventory qty_pcount */
-		public function addInventoryQtyPcount($inv_id, $qty, $ics_id) {
-			$query = "UPDATE inventory SET qty_pcount = qty_pcount + ? WHERE inv_id = ?";
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("is", $qty, $inv_id);
-				$stmt->execute();
-				$stmt->close();
-			}
-
-			$inventories = $this->getInventoryDetailByInvNo($inv_id);
-			$description = $inventories['description'];
-			$unit = $inventories['unit'];
-
-			$ics = $this->displayICSView($ics_id);
-			$ics_no = $ics['ics_no'];
-
-			$logMessage = "'s, '$qty $unit' has been returned to inventory record from ICS No. $ics_no";
-			$account_id = $_SESSION['sess'];
-
-			$this-> logTransaction('inventory', 'UPDATE', $inv_id, $description, $account_id, $logMessage);
-
-		}
-
+	
 		/*=============================================
 						I N V E N T O R Y
 		=============================================*/
-
-		// Function to retrieve current inventory details by inv_id
-		private function getInventoryDetailByInvNo($inv_id) {
-			$query = "SELECT * FROM inventory WHERE inv_id = ?";
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("s", $inv_id);
-				$stmt->execute();
-				$result = $stmt->get_result();
-				if ($row = $result->fetch_assoc()) {
-					return $row;
-				}
-				$stmt->close();
-			}
-			return null;
-		}
 
 		public function getInventoryDetailByPropertyNo($property_no) {
 			$data = null;
@@ -3678,23 +2949,23 @@
 		}
 
 	
-		// DELETE ACTIVITY LOGS / HISTORY
-		public function deleteActivityLogs($ids) {
-			$query = "DELETE FROM history_log WHERE id IN (";
-			$placeholders = implode(',', array_fill(0, count($ids), '?'));
-			$query .= $placeholders . ")";
-			
+		public function deleteAssignmentLog($assignment_id) {
+			$query = "DELETE FROM history_log 
+					WHERE module = ? AND item_no = ?";
+
+			$module = 'assignment';
+
 			if ($stmt = $this->conn->prepare($query)) {
-				// Dynamically bind parameters based on the number of IDs
-				$types = str_repeat('i', count($ids));
-				$stmt->bind_param($types, ...$ids); // Using the splat operator to unpack the array
+				$stmt->bind_param("ss", $module, $assignment_id);
 				$stmt->execute();
 				$stmt->close();
 			}
 		}
+
+
 	
 
-		// DISPLAY INVENTORY RECORDS WITH RELATED INFORMATION
+		// DISPLAY INVENTORY RECORDS WITH RELATED INFORMATION (report-inventory)
 		public function displayInventoryWithDetails() {
 			$data = null;
 			
@@ -3742,7 +3013,7 @@
 
 		
 
-		// FETCH ALL ARCHIVED
+		// FETCH ALL ARCHIVED (archive-inventory)
 		public function getInventoryArchives() {
 			$data = null;
 			$query = "SELECT * FROM archive_inventory ";
@@ -3759,7 +3030,7 @@
 			return $data;
 		}
 
-		//DELETE INVENTORY FROM ARCHIVE RECORD
+		//DELETE INVENTORY FROM ARCHIVE RECORD (archive-inventory)
 		public function deleteArchive($archive_id, $inv_id) {
 			$account_id = $_SESSION['sess'];
 			$logMessage = "'s has been deleted from inventory archive.";
@@ -3776,7 +3047,7 @@
 			
 		}	
 
-		//DELETE INVENTORY FROM ARCHIVE RECORD
+		//DELETE INVENTORY FROM ARCHIVE RECORD (archive-assignment)
 		public function deleteAssignmentArchive($archive_id, $end_user) {
 			$account_id = $_SESSION['sess'];
 			$logMessage = "'s <b>inventory assignment archive</b> has been deleted.";
@@ -3800,43 +3071,6 @@
 		/* =================================================
 							ARCHIVES
 		================================================= */
-		
-		
-		/* Category count */
-		public function getCategoryData() {
-			$data = array();
-		
-			$query = "SELECT c.category_name, getEndUser 
-					  FROM category c
-					  LEFT JOIN inventory i ON i.category = c.id
-					  GROUP BY c.id";
-		
-			$result = $this->conn->query($query);
-			if ($result) {
-				while ($row = $result->fetch_assoc()) {
-					$data[$row['category_name']] = $row['category_count'];
-				}
-			}
-			return $data;
-		}
-
-		/* Count inventory remarks (inventory.php) */
-		public function getRemarkData() {
-			$data = array();
-			
-			$query = "SELECT n.note_name AS remark, COUNT(*) AS remark_count
-					  FROM inventory i
-					  LEFT JOIN note n ON i.remark = n.id
-					  GROUP BY i.remark";
-			
-			$result = $this->conn->query($query);
-			if ($result) {
-				while ($row = $result->fetch_assoc()) {
-					$data[$row['remark']] = $row['remark_count'];
-				}
-			}
-			return $data;
-		}
 		
 
 		/*=============================================
@@ -3884,7 +3118,7 @@
 					DESIGNATION
 		============================================*/
 
-		/* Insert new designation record (custom-est-life.php) */
+		/* Insert new designation record (custom-designation.php) */
 		public function insertDesignation($designation_name) {
 			$query = "INSERT INTO designation (designation_name) VALUES (?)";
 
@@ -3950,34 +3184,8 @@
 			}
 		}
 
-		/* dili ma delete ang assignment kung naay naka assign*/
-		public function gassignitem($assignment_id) {
-			$data = null;
-			$query = "SELECT * FROM inventory_assignment WHERE end_user = ?";
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("i", $assignment_id);
-				$stmt->execute();
-				$result = $stmt->get_result();
-				$data = $result->fetch_all(MYSQLI_ASSOC);
-				$stmt->close();
-			}
-			return $data;
-		}
 
-		public function gtransferitem($assignment_id) {
-			$data = null;
-			$query = "SELECT * FROM inventory_transfer WHERE new_end_user = ?";
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("i", $assignment_id);
-				$stmt->execute();
-				$result = $stmt->get_result();
-				$data = $result->fetch_all(MYSQLI_ASSOC);
-				$stmt->close();
-			}
-			return $data;
-		}
-
-		/* Get inventory assignment detail based on id (inventory-assignment.php) */
+		/* Get inventory assignment detail based on id (inventory-assignment-view.php) */
 		public function getAssignmentItemsById($assignment_id) {
 			$data = [];
 			$query = "SELECT * FROM inventory_assignment_item WHERE assignment_id = ? AND qty > 0";
@@ -3997,6 +3205,7 @@
 			return $data;
 		}
 
+		// (inventory-assignment-view)
 		public function getAssignmentItemQty($assignment_id) {
 		$data = [];
 		$query = "SELECT a.qty AS quantity
@@ -4015,6 +3224,7 @@
 			return $data;
 		}
 
+		// (inventory-assignment.php)
 		public function getAssignmentTotalQty($assignment_id) {
 			$total_qty = 0;
 			$query = "SELECT SUM(qty) AS total_qty FROM inventory_assignment_item WHERE assignment_id = ?";
@@ -4033,66 +3243,7 @@
 			
 			return $total_qty;
 		}
-		
-		public function getTransferTotalQty($transfer_id) {
-			$total_qty = 0;
-			$query = "SELECT SUM(qty) AS total_qty FROM inventory_transfer_item WHERE transfer_id = ?";
-			
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("i", $transfer_id);
-				$stmt->execute();
-				$result = $stmt->get_result();
-				
-				if ($row = $result->fetch_assoc()) {
-					$total_qty = $row['total_qty'];
-				}
-				
-				$stmt->close();
-			}
-			
-			return $total_qty;
-		}
-
-
-		public function getAssignmentTransQty($transferredAssignment) {
-			$total_qty = 0;
-			$query = "SELECT SUM(qty) AS total_qty FROM inventory_transfer_item WHERE transfer_id = ?";
-			
-			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("i", $transferredAssignment);
-				$stmt->execute();
-				$result = $stmt->get_result();
-				
-				if ($row = $result->fetch_assoc()) {
-					$total_qty = $row['total_qty'];
-				}
-				
-				$stmt->close();
-			}
-			
-			return $total_qty;
-		}
-
-		public function hasAssignments($endUser_id) {
-			$query = "SELECT i.qty 
-					  FROM inventory_assignment_item i
-					  JOIN inventory_assignment a ON i.assignment_id = a.id
-					  WHERE a.end_user = ?";
-			$stmt = $this->conn->prepare($query);
-			$stmt->bind_param('i', $endUser_id);
-			$stmt->execute();
-			$result = $stmt->get_result();
-			
-			// Check if there are any rows returned
-			return $result->num_rows > 0;
-		}
 	
-		public function deleteEndUser1($endUser_id) {
-			$query = "DELETE FROM end_users WHERE id = ?";
-			$stmt = $this->conn->prepare($query);
-			$stmt->bind_param('i', $endUser_id);  // 'i' indicates that the parameter is an integer
-			$stmt->execute();
-		}
 
 		/*=====================================================
 						END USER INTERFACE
@@ -4209,9 +3360,10 @@
 		// Method to get all inventory assignments
 		public function getInventoryAssignmentByEndUserId($end_user_id) {
 			$data = [];
-			$query = "SELECT a.id AS assignment_id, a.end_user, a.status, a.date_added, e.id AS end_user_id, e.username
+			$query = "SELECT a.id AS assignment_id, a.end_user, a.status, a.date_added, e.id AS end_user_id, e.user_id, u.username
 					FROM inventory_assignment a
-					INNER JOIN end_user e ON a.end_user = e.id
+					LEFT JOIN end_user e ON a.end_user = e.id
+					LEFT JOIN users u ON e.user_id = u.id
 					WHERE a.end_user = ?
 					ORDER BY a.date_added DESC";
 
@@ -4272,16 +3424,15 @@
 		}
 
 		/* Get all record from history_log */
-		public function getHistoryLogByEndUser($end_user) {
+		public function getHistoryLogByEndUser($end_user_id) {
 			$data = null;
 			$query = "SELECT * FROM history_log 
-						WHERE module = ? AND item_no = ?
+						WHERE user_id = ?
 						ORDER BY date_time DESC";
 			
-			$module = "assignment";
 
 			if ($stmt = $this->conn->prepare($query)) {
-				$stmt->bind_param("ss", $module, $end_user);
+				$stmt->bind_param("i", $end_user_id);
 				$stmt->execute();
 				$result = $stmt->get_result();
 				$num_of_rows = $stmt->num_rows;
@@ -4315,9 +3466,33 @@
 			}
 			return $dates; // Return both date and assignment_id
 		}
+
 		
 		
+
 		
+		/*================================================
+					END USER (INVENTORY)
+		=================================================*/
+
+		public function getInventoryByEndUserId($end_user_id) {
+			$data = [];
+			$query = "SELECT i.id AS item_id, i.property_no, i.description, i.location, i.unit, i.qty, i.unit_cost, i.total_cost, i.acquisition_date, a.date_added
+					  FROM inventory_assignment a
+					  INNER JOIN inventory_assignment_item i ON a.id = i.assignment_id
+					  WHERE a.end_user = ?";
+		
+			if ($stmt = $this->conn->prepare($query)) {
+				$stmt->bind_param("i", $end_user_id);
+				$stmt->execute();
+				$result = $stmt->get_result();
+				while ($row = $result->fetch_assoc()) {
+					$data[] = $row;
+				}
+				$stmt->close();
+			}
+			return $data;
+		}
 		
 
 

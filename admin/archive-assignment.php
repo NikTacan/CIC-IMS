@@ -73,10 +73,16 @@
 					<span class="ttr-label" style="color: #D5D6D8; font-weight: 500;">Admin Settings</span>
 				</li>
 				<li class="" style="margin-top: 0px;">
+					<a href="sub-admin" class="ttr-material-button">
+						<span class="ttr-icon"><i class="fa fa-address-book" aria-hidden="true"></i></span>
+						<span class="ttr-label">Sub Admin</span>
+					</a>
+				</li>
+				<li class="" style="margin-top: 0px;">
 					<div class="accordion accordion-flush" id="accordionSettings">
 						<div class="accordion-item">
 							<h2 class="accordion-header">
-							<button class="accordion-button ps-3.5 py-1 collapsed" style="text-color: #FFFFFF; color: #FFFFFF;" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSettings" aria-expanded="true" aria-controls="collapseSettings" ><i class="fa fa-solid fa-gear me-2 pe-3" aria-hidden="true"></i>
+							<button class="accordion-button ps-3.5 py-1 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSettings" aria-expanded="true" aria-controls="collapseSettings" ><i class="fa fa-solid fa-gear me-2 pe-3" aria-hidden="true"></i>
 							Settings
 							</button>
 							</h2>
@@ -160,47 +166,49 @@
 							</div>
 						<?php endif; ?>
 						
-						<!-- Main table -->
-						<table id="table" class="table" style="width:100%">
-							<thead>
-								<tr>
-									<th class="col-5">End User</th>
-									<th class="col-2">Date Assigned</th>
-									<th class="col-2">Date Archived</th>
-									<th class="col-1">Action</th>
-								</tr>
-							</thead>
-							<tbody>
-								
-								<?php if(!empty($assignmentArchives)): ?>
-									<?php foreach ($assignmentArchives as $archiveInfo): ?>
-										<?php $archive_id = $archiveInfo['id']; ?>
-										<?php $assignment_id = $archiveInfo['assignment_id']; ?>
-										<tr>
-											<td><?php echo getNameFromField($archiveInfo['end_user']); ?></td>
-											<td><?php echo $archiveInfo['date_added']; ?></td>
-											<td><?php echo $archiveInfo['date_archived']; ?></td>
-											
-											<td>
-												<center>
-													<button data-toggle="modal" data-target="#restore-<?php echo $archive_id; ?>" class="btn green" style="width: 50px; height: 37px;">
-														<span data-toggle="tooltip" title="Restore">
-															<i class="ti-reload" style="font-size: 12px;"></i>
-														</span>
-													</button>
-													<button data-toggle="modal" data-target="#delete-<?php echo $archive_id; ?>" class="btn red" style="width: 50px; height: 37px;">
-														<span data-toggle="tooltip" title="Delete">
-															<i class="ti-archive" style="font-size: 12px;"></i>
-														</span>
-													</button>
-												</center>
-											</td>
-										</tr>
-									<?php endforeach; ?>
-								<?php endif; ?> <!-- assignment archive endif -->
+						<div class="table-responsive">
+							<!-- Main table -->
+							<table id="table" class="table" style="width:100%">
+								<thead>
+									<tr>
+										<th class="col-5">End User</th>
+										<th class="col-2">Date Assigned</th>
+										<th class="col-2">Date Archived</th>
+										<th class="col-sm-1 col-lg-2">Action</th>
+									</tr>
+								</thead>
+								<tbody>
+									
+									<?php if(!empty($assignmentArchives)): ?>
+										<?php foreach ($assignmentArchives as $archiveInfo): ?>
+											<?php $archive_id = $archiveInfo['id']; ?>
+											<?php $assignment_id = $archiveInfo['assignment_id']; ?>
+											<tr>
+												<td><?php echo getNameFromField($archiveInfo['end_user']); ?></td>
+												<td><?php echo $archiveInfo['date_added']; ?></td>
+												<td><?php echo $archiveInfo['date_archived']; ?></td>
+												
+												<td>
+													<center>
+														<button data-toggle="modal" data-target="#restore-<?php echo $archive_id; ?>" class="btn green mt-1" style="width: 50px; height: 37px;">
+															<span data-toggle="tooltip" title="Restore">
+																<i class="ti-reload" style="font-size: 12px;"></i>
+															</span>
+														</button>
+														<button data-toggle="modal" data-target="#delete-<?php echo $archive_id; ?>" class="btn red mt-1" style="width: 50px; height: 37px;">
+															<span data-toggle="tooltip" title="Delete">
+																<i class="ti-archive" style="font-size: 12px;"></i>
+															</span>
+														</button>
+													</center>
+												</td>
+											</tr>
+										<?php endforeach; ?>
+									<?php endif; ?> <!-- assignment archive endif -->
 
-							</tbody>
-						</table> <!-- Main table -->			
+								</tbody>
+							</table> <!-- Main table -->	
+						</div>		
 
 						<!-- View assignment archive record -->
 						<?php if(!empty($assignmentArchives)): ?>

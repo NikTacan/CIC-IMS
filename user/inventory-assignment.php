@@ -82,7 +82,7 @@
 								<thead>
 									<tr>
 										<th class="col-2">End User</th>
-										<th class="col-1">Assigned items</th>
+										<th class="col-1">Assigned Items</th>
 										<th class="col-1">Status</th>
 										<th class="col-2">Date Added</th>
 										<th class="col-sm-1 col-lg-1">Action</th>
@@ -139,16 +139,6 @@
 								$assignment_id = $_POST['assignment_id'];
 
 								$model->archiveAssignment($assignment_id);
-								
-								echo "<script>alert('Assignment record has been archived!');window.open('inventory-assignment', '_self')</script>";
-							}
-
-							
-							/* Archive transfered assignment record controller */
-							if (isset($_POST['archive-transferedassignment'])) {
-								$transfer_id = $_POST['transfer_id'];
-
-								$model->archivetransferedAssignment($transfer_id);
 								
 								echo "<script>alert('Assignment record has been archived!');window.open('inventory-assignment', '_self')</script>";
 							}

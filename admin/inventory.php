@@ -75,46 +75,61 @@
 					<span class="ttr-label">Report</span>
 				</a>
 			</li>
+			<?php if($userInfo['role_id'] == 1): ?>
 			<li style="padding-left: 20px; padding-top: 40px; padding-bottom: 5px; margin-top: 0px; margin-bottom: 0px;">
 				<span class="ttr-label" style="color: #D5D6D8; font-weight: 500;">Admin Settings</span>
 			</li>
-				<li class="" style="margin-top: 0px;">
-					<div class="accordion accordion-flush" id="accordionSettings">
-						<div class="accordion-item">
-							<h2 class="accordion-header">
-							<button class="accordion-button ps-3.5 py-1 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSettings" aria-expanded="true" aria-controls="collapseSettings" ><i class="fa fa-solid fa-gear me-2 pe-3" aria-hidden="true"></i>
-							Settings
-							</button>
-							</h2>
-						<div id="collapseSettings" class="accordion-collapse collapse" data-bs-parent="#accordionSettings">
-						<div class="accordion-body p-0">
-							<div class="">
-								<a href="system-content" class="ttr-material-button mx-0 my-0">
-									<span class="ttr-icon"></span>
-									<span class="ttr-label">General Content</span>
-								</a>
-							</div>
-							<div class="">
-								<a href="customize" class="ttr-material-button mx-0 my-0">
-									<span class="ttr-icon"></span>
-									<span class="ttr-label">Components</span>
-								</a>
-							</div>
+			<li class="" style="margin-top: 0px;">
+				<a href="sub-admin" class="ttr-material-button">
+					<span class="ttr-icon"><i class="fa fa-address-book" aria-hidden="true"></i></span>
+					<span class="ttr-label">Sub Admin</span>
+				</a>
+			</li>
+			<li class="" style="margin-top: 0px;">
+				<div class="accordion accordion-flush" id="accordionSettings">
+					<div class="accordion-item">
+						<h2 class="accordion-header">
+						<button class="accordion-button ps-3.5 py-1 collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSettings" aria-expanded="true" aria-controls="collapseSettings" ><i class="fa fa-solid fa-gear me-2 pe-3" aria-hidden="true"></i>
+						Settings
+						</button>
+						</h2>
+					<div id="collapseSettings" class="accordion-collapse collapse" data-bs-parent="#accordionSettings">
+					<div class="accordion-body p-0">
+						<div class="">
+							<a href="system-content" class="ttr-material-button mx-0 my-0">
+								<span class="ttr-icon"></span>
+								<span class="ttr-label">General Content</span>
+							</a>
+						</div>
+						<div class="">
+							<a href="customize" class="ttr-material-button mx-0 my-0">
+								<span class="ttr-icon"></span>
+								<span class="ttr-label">Components</span>
+							</a>
 						</div>
 					</div>
-				</li>
-				<li class="" style="margin-top: 0px;">
-					<a href="history" class="ttr-material-button">
-						<span class="ttr-icon"><i class="fa fa-history" aria-hidden="true"></i></span>
-						<span class="ttr-label">Activity Logs</span>
-					</a>
-				</li>
-				<li class="" style="margin-top: 0px;">
-					<a href="archive-inventory" class="ttr-material-button">
-						<span class="ttr-icon"><i class="ti-archive" aria-hidden="true"></i></span>
-						<span class="ttr-label">Archives</span>
-					</a>
-				</li>
+				</div>
+			</li>
+			<li class="" style="margin-top: 0px;">
+				<a href="history" class="ttr-material-button">
+					<span class="ttr-icon"><i class="fa fa-history" aria-hidden="true"></i></span>
+					<span class="ttr-label">Activity Logs</span>
+				</a>
+			</li>
+			<li class="" style="margin-top: 0px;">
+				<a href="archive-inventory" class="ttr-material-button">
+					<span class="ttr-icon"><i class="ti-archive" aria-hidden="true"></i></span>
+					<span class="ttr-label">Archives</span>
+				</a>
+			</li>
+			<?php else: ?>
+			<li class="" style="margin-top: 0px;">
+				<a href="history" class="ttr-material-button">
+					<span class="ttr-icon"><i class="fa fa-history" aria-hidden="true"></i></span>
+					<span class="ttr-label">Activity Logs</span>
+				</a>
+			</li>
+			<?php endif; ?>
 		</ul>
 	</nav>
 </div>
@@ -129,11 +144,13 @@
                     <!-- Header aligned to the left -->
                     <h2 class="p-0 mb-0">Inventory</h2>
 
+					<?php if($userInfo['role_id'] == 1): ?>
                     <!-- Button aligned to the right -->
                     <button type="button" class="btn green radius-xl" style="background-color: #5ADA86;" data-toggle="modal" data-target="#insert-inventory">
                         <i class="fa fa-plus"></i>
                         <span class="d-none d-lg-inline">&nbsp;&nbsp;ADD INVENTORY</span>
                     </button>
+					<?php endif; ?>
                 </div>
             </div>
         </div>
@@ -285,7 +302,11 @@
 										<th lass="col-1">Category</th>
 										<th lass="col-1">Remarks</th>
 										<th>Date Added</th>
-										<th class="col-sm-1 col-lg-2">Action</th>
+										<?php if($userInfo['role_id'] == 1): ?>
+											<th class="col-sm-1 col-lg-2">Action</th>
+										<?php else: ?>
+											<th class="col-1">Action</th>
+										<?php endif; ?>
 									</tr>	
 								</thead>
 								<tbody>
@@ -309,21 +330,29 @@
 
 												<td>
 													<center>
-														<button id="<?php echo $inv_id;?>" onclick="window.location.href='inventory-view.php?id=<?php echo $inventory['inv_id']; ?>'" type="submit" name="view" class="btn green mt-1" style="width: 50px; height: 37px;">
-															<span data-toggle="tooltip" title="View">
-																<i class="ti-search" style="font-size: 12px;"></i>
-															</span>
-														</button>
-														<button data-toggle="modal" data-target="#update-<?php echo $inv_id; ?>" class="btn blue mt-1" style="width: 50px; height: 37px;">
-															<span data-toggle="tooltip" title="Update">
-																<i class="ti-marker-alt" style="font-size: 12px;"></i>
-															</span>
-														</button>
-														<button data-toggle="modal" data-target="#archive-<?php echo $inv_id; ?>" class="btn red mt-1" style="width: 50px; height: 37px;">
-															<span data-toggle="tooltip" title="Archive">
-																<i class="ti-archive" style="font-size: 12px;"></i>
-															</span>
-														</button>
+														<?php if($userInfo['role_id'] == 1): ?>
+															<button id="<?php echo $inv_id;?>" onclick="window.location.href='inventory-view.php?id=<?php echo $inventory['inv_id']; ?>'" type="submit" name="view" class="btn green mt-1" style="width: 50px; height: 37px;">
+																<span data-toggle="tooltip" title="View">
+																	<i class="ti-search" style="font-size: 12px;"></i>
+																</span>
+															</button>
+															<button data-toggle="modal" data-target="#update-<?php echo $inv_id; ?>" class="btn blue mt-1" style="width: 50px; height: 37px;">
+																<span data-toggle="tooltip" title="Update">
+																	<i class="ti-marker-alt" style="font-size: 12px;"></i>
+																</span>
+															</button>
+															<button data-toggle="modal" data-target="#archive-<?php echo $inv_id; ?>" class="btn red mt-1" style="width: 50px; height: 37px;">
+																<span data-toggle="tooltip" title="Archive">
+																	<i class="ti-archive" style="font-size: 12px;"></i>
+																</span>
+															</button>
+														<?php else: ?>
+															<button id="<?php echo $inv_id;?>" onclick="window.location.href='inventory-view.php?id=<?php echo $inventory['inv_id']; ?>'" type="submit" name="view" class="btn green mt-1" style="width: 50px; height: 37px;">
+																<span data-toggle="tooltip" title="View">
+																	<i class="ti-search" style="font-size: 12px;"></i>
+																</span>
+															</button>
+														<?php endif; ?>
 													</center>
 												</td>
 											</tr>

@@ -110,9 +110,9 @@ $theme_id = $customize['theme'];
                                     error_log("User {$uname} with role_id {$response['data']['role_id']} logged in successfully.");
 
                                     // Role-based redirection
-                                    if ($response['data']['role_id'] == 1) {
+                                    if ($response['data']['role_id'] == 1 || $response['data']['role_id'] == 2 ) {
                                         header("Location: admin/index.php");
-                                    } elseif ($response['data']['role_id'] == 2) {
+                                    } elseif ($response['data']['role_id'] == 3) {
                                         header("Location: user/index.php");
                                     } else {
                                         header("Location: default/index.php");
