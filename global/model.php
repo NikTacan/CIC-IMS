@@ -3,7 +3,7 @@
 	Class Model {
 		private $server = "localhost";
 		private $username = "root";
-		private $password = "cicims";
+		private $password = "";
 		private $dbname = "cic_ims";
 		private $conn;
 
