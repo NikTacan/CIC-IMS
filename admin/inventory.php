@@ -218,7 +218,7 @@
 													</select>
 
 													<label class="col-form-label">Qty per Property Card:</label>
-													<input class="form-control" type="number" name="qty_pcard" id="qty_pcard" value="" min="1" required oninput="validateInteger(this); updateQtyPcount(this)">
+													<input class="form-control" type="number" name="qty_pcard" id="qty_pcard" value="" placeholder="Enter property number" min="1" required oninput="validateInteger(this); updateQtyPcount(this)">
 													<small id="qty_pcard_warning" class="text-danger" style="display:none;">Please enter an integer.</small>
 												</div>
 
@@ -461,8 +461,6 @@
 																					<?php endif; ?>
 																				</select>
 																			</div>
-																			
-
 																			<div class="form-group col-12">
 																				<label class="col-form-label">Qty per Property Card:</label>
 																				<input class="form-control" type="number" name="qty_pcard" id="qty_pcard" value="<?php echo $inventory['qty_pcard']; ?>" min="<?php echo $inventory['qty_pcount']; ?>" max="9999999" maxlength="9" required readonly>
@@ -607,30 +605,37 @@
 								// Check if 'Single' or 'Unique' property number was selected
 								if ($property_type === 'single') {
 									$property_no = $_POST['property_no'];
+									$cost = $_POST['cost']; // Add this line to fetch cost
 									$qty_pcount = $_POST['qty_pcard'];
-
+								
 									if (!$model->checkPropertyNoExist($property_no)) {
-
 										$model->insertInventory($property_no, $category, $location, $article, $description, $qty_pcard, $qty_pcount, $unit, $cost, $est_life, $acquired_date, $remark);
-										$_SESSION['successMessage'] = "Inventory record added succesfully!";
+										$_SESSION['successMessage'] = "Inventory record added successfully!";
 										header("Location: inventory.php");
 										exit();
-
 									} else {
-										$_SESSION['errorMessage'] = "Property No. '". $property_no ."' already exist!";
+										$_SESSION['errorMessage'] = "Property No. '". $property_no ."' already exists!";
 										header("Location: inventory.php");
 										exit();
 									}
-
-								} else if ($property_type === 'unique') { 
+									
+								} elseif ($property_type === 'unique') { 
 									$allInserted = true;
 									$existingPropertyNumbers = []; // Track existing property numbers
-								
+									
 									for ($i = 1; $i <= $qty_pcard; $i++) { 
-										$property_no = $_POST["property_no_$i"]; 
-										$cost = $_POST["cost_$i"];  
+										$property_no = $_POST["property_no_$i"] ?? null; 
+										$cost = $_POST["cost_$i"] ?? null;  
+										
+										// Check for missing property number or cost
+										if (empty($property_no) || empty($cost)) {
+											$allInserted = false;
+											$_SESSION['errorMessage'] = "Property No. or Cost missing for item $i.";
+											header("Location: inventory.php");
+											exit();
+										}
 								
-										// Check if property number already exists in current batch
+										// Check for duplicates within the current batch
 										if (in_array($property_no, $existingPropertyNumbers)) {
 											$allInserted = false;
 											$_SESSION['errorMessage'] = "Duplicate Property No. in current batch: " . $property_no;
@@ -649,7 +654,7 @@
 											exit(); 
 										} 
 									} 
-								
+									
 									if ($allInserted) {
 										$_SESSION['successMessage'] = "Inventory records added successfully!";
 										header("Location: inventory.php"); 
@@ -657,10 +662,9 @@
 									}
 								}
 								
+								
 							}
 							
-							
-
 							/* Update inventory record controller */
 							if (isset($_POST['update-inventory'])) {
 								$inv_id = $_POST['inv_id'];
@@ -743,77 +747,77 @@
 <div class="ttr-overlay"></div>
 
 	<?php include('../includes/layouts/main-layouts/scripts.php'); ?>
-	<?php include('../includes/js/data-tables.php'); ?>
+	
+	
+	<script type="text/javascript">
+		$(document).ready(function() {
+			$('#table').DataTable({
+				order: [[4, 'desc']], // Sort by the 2nd column (Date & Time) in descending order
+				columnDefs: [
+					{ orderable: false, targets: 2 } // Disable sorting for the Action column
+				]
+			});
 
+			$('[data-toggle="tooltip"]').tooltip();
+		});
+	</script>
 
 	<script>
-		function validateQty(invId) {
-			var qtyPcard = document.getElementById('qty_pcard-' + invId).value;
-			var qtyPcount = document.getElementById('qty_pcount-' + invId).value;
-			if (qtyPcard != qtyPcount) {
-				alert('Cannot archive record. Quantity per property card does not match quantity per physical count.');
-				return false;
-			}
-			return confirm('Archive This Record?');
+		let selectedType = "";
+
+		function selectPropertyType(type) {
+			selectedType = type;
+			document.getElementById("property_type").value = type; // Set hidden input
+			document.getElementById("property-number-container").style.display = "block";
+			updatePropertyNumberFields();
 		}
-	</script>
 
-	<script>
-let selectedType = "";
+		function updatePropertyNumberFields() {
+			const qty = parseInt(document.getElementById("qty_pcard").value) || 0;
+			const container = document.getElementById("property-number-fields");
+			container.innerHTML = ""; // Clear existing inputs
 
-function selectPropertyType(type) {
-    selectedType = type;
-    document.getElementById("property_type").value = type; // Set hidden input
-    document.getElementById("property-number-container").style.display = "block";
-    updatePropertyNumberFields();
-}
+			if (selectedType === "unique") {
+				for (let i = 1; i <= qty; i++) {
+					const row = document.createElement("div");
+					row.className = "row mb-2";
 
-function updatePropertyNumberFields() {
-    const qty = parseInt(document.getElementById("qty_pcard").value) || 0;
-    const container = document.getElementById("property-number-fields");
-    container.innerHTML = ""; // Clear existing inputs
+					const propertyInput = document.createElement("div");
+					propertyInput.className = "col-6";
+					propertyInput.innerHTML = `<input class="form-control" type="text" name="property_no_${i}" placeholder="Property Number ${i}" required>`;
 
-    if (selectedType === "unique") {
-        for (let i = 1; i <= qty; i++) {
-            const row = document.createElement("div");
-            row.className = "row mb-2";
+					const costInput = document.createElement("div");
+					costInput.className = "col-6";
+					costInput.innerHTML = `<input class="form-control" type="number" name="cost_${i}" placeholder="Unit Cost (₱)" step="0.01" required>`;
 
-            const propertyInput = document.createElement("div");
-            propertyInput.className = "col-6";
-            propertyInput.innerHTML = `<input class="form-control" type="text" name="property_no_${i}" placeholder="Property Number ${i}" required>`;
+					row.appendChild(propertyInput);
+					row.appendChild(costInput);
+					container.appendChild(row);
+				}
+			} else if (selectedType === "single") {
+			const row = document.createElement("div");
+			row.className = "row";
 
-            const costInput = document.createElement("div");
-            costInput.className = "col-6";
-            costInput.innerHTML = `<input class="form-control" type="number" name="cost_${i}" placeholder="Unit Cost (₱)" step="0.01" required>`;
+			const propertyInput = document.createElement("div");
+			propertyInput.className = "col-6";
+			propertyInput.innerHTML = `<input class="form-control" type="text" name="property_no" placeholder="Property Number" required>`;
 
-            row.appendChild(propertyInput);
-            row.appendChild(costInput);
-            container.appendChild(row);
-        }
-    } else if (selectedType === "single") {
-    const row = document.createElement("div");
-    row.className = "row";
+			const costInput = document.createElement("div");
+			costInput.className = "col-6";
+			costInput.innerHTML = `<input class="form-control" type="number" name="cost" placeholder="Unit Cost (₱)" step="0.01" required>`;
 
-    const propertyInput = document.createElement("div");
-    propertyInput.className = "col-6";
-    propertyInput.innerHTML = `<input class="form-control" type="text" name="property_no" placeholder="Property Number" required>`;
+			row.appendChild(propertyInput);
+			row.appendChild(costInput);
+			container.appendChild(row);
+		}
 
-    const costInput = document.createElement("div");
-    costInput.className = "col-6";
-    costInput.innerHTML = `<input class="form-control" type="number" name="cost" placeholder="Unit Cost (₱)" step="0.01" required>`;
+		}
 
-    row.appendChild(propertyInput);
-    row.appendChild(costInput);
-    container.appendChild(row);
-}
-
-}
-
-document.getElementById("qty_pcard").addEventListener("input", updatePropertyNumberFields);
+		document.getElementById("qty_pcard").addEventListener("input", updatePropertyNumberFields);
 
 	</script>
 
-	<!-- Input in number input -->
+			<!-- Input in number input -->
 	<script>
 		function validateInteger(input) {
 		const warningElement = document.getElementById(`${input.id}_warning`);

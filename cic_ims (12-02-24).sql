@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 29, 2024 at 04:30 AM
+-- Generation Time: Dec 02, 2024 at 07:04 AM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -44,13 +44,6 @@ CREATE TABLE `archive_inventory` (
   `remark` varchar(15) NOT NULL,
   `date_archived` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `archive_inventory`
---
-
-INSERT INTO `archive_inventory` (`id`, `inv_id`, `property_no`, `category`, `location`, `article`, `description`, `qty_pcard`, `qty_pcount`, `unit`, `unit_cost`, `est_life`, `acquisition_date`, `remark`, `date_archived`) VALUES
-(33, 41, 'LPTP1001', '2 Computer', '5 Storage', '1 Hardware and Softwares', 'Vivo Laptop', 1, 1, '27 pcs', 35000, '3 5 years', '2024-11-28', '4 Serviceable', '2024-11-28 18:13:59');
 
 -- --------------------------------------------------------
 
@@ -138,9 +131,7 @@ CREATE TABLE `end_user` (
 
 INSERT INTO `end_user` (`id`, `user_id`, `first_name`, `middle_name`, `last_name`, `email`, `contact`, `designation`, `sex`, `birthday`, `status`, `date_registered`) VALUES
 (8, 6, 'Anthony', 'Silvano', 'Calubag', 'ton@gmail.com', '9123456784', 3, 'female', '2001-04-11', 1, '2024-10-21'),
-(13, 11, 'nik', 'nik', 'nik', 'nik@gmail.com', '9123456789', 3, 'Male', '2024-11-19', 1, '2024-11-19'),
-(17, 30, 'test', '', '', 'ascalubag@gmail.com', '9123456789', 3, 'male', '2024-11-28', 1, '2024-11-28'),
-(18, 33, 'test1', '', '', 'ascalubag@gmail.com', '9123456789', 1, 'male', '2024-11-29', 1, '2024-11-29');
+(13, 11, 'nik', 'nik', 'nik', 'nik@gmail.com', '9123456789', 3, 'Male', '2024-11-19', 1, '2024-11-19');
 
 -- --------------------------------------------------------
 
@@ -184,11 +175,10 @@ CREATE TABLE `history_log` (
 --
 
 INSERT INTO `history_log` (`id`, `module`, `transaction_type`, `item_no`, `description`, `user_id`, `log_message`, `date_time`) VALUES
-(563, 'end_user', 'UPDATE', '178', 'DJI Battery 20v', 1, '\'s from <b>\'ton\' Inventory assignment</b> has been updated. Location:  \'IT Departments\' to \'IT Department\'.', '2024-11-29 11:00:58'),
-(564, 'assignment', 'UPDATE', '178', 'DJI Battery 20v', 8, '\'s from <b>ton Inventory assignment</b> has been updated. From \'4 pcs\' to \'3 pcs\'.', '2024-11-29 11:12:21'),
-(565, 'inventory', 'RETURNED', '435426', 'DJI Battery 20v', 1, '\'s, \'1 pcs\' has been returned to inventory record from <b>ton inventory assignment</b>.', '2024-11-29 11:12:21'),
-(566, 'assignment', 'UPDATE', '178', 'DJI Battery 20v', 8, '\'s from <b>ton Inventory assignment</b> has been updated. Location:  \'IT Department\' to \'IT Departments\'.', '2024-11-29 11:14:01'),
-(567, 'end_user', 'UPDATE', 'test1', 'test1', 1, ' end user\'s record has been updated. First name changed from \'test\' to \'test1\', Sex changed from \'Male\' to \'male\'', '2024-11-29 11:22:47');
+(586, 'inventory', 'INSERT', 'lptp20240212001', 'Vivo Laptop 16x RYZEN 5600', 1, '\'s has been added to the Inventory record.', '2024-12-02 13:19:37'),
+(587, 'inventory', 'INSERT', 'lptp20240212002', 'Vivo Laptop 16x RYZEN 5600', 1, '\'s has been added to the Inventory record.', '2024-12-02 13:19:37'),
+(588, 'assignment', 'INSERT', '190', 'ton', 1, ' have new <b>Inventory assignment</b>.', '2024-12-02 13:20:59'),
+(589, 'inventory', 'INSERT', 'lptp20240212002', 'Vivo Laptop 16x RYZEN 5600', 8, '\'s  \'1 pcs\' has been assigned to <b>ton</b>.', '2024-12-02 13:21:07');
 
 -- --------------------------------------------------------
 
@@ -218,16 +208,8 @@ CREATE TABLE `inventory` (
 --
 
 INSERT INTO `inventory` (`inv_id`, `property_no`, `category`, `location`, `article`, `description`, `qty_pcard`, `qty_pcount`, `unit`, `unit_cost`, `est_life`, `acquisition_date`, `date_added`, `remark`) VALUES
-(9, '1142356', 4, 3, 1, 'DJI Drone', 2, 0, 27, 29000, 4, '2024-07-03', '2024-07-03 10:38:23', 4),
-(10, '435426', 4, 3, 1, 'DJI Battery 20v', 5, 3, 27, 4000, 3, '2024-07-03', '2024-07-03 10:40:24', 4),
-(12, '2415554', 2, 3, 1, 'Acer Predator VK85 - Intel i7-13435 16GB 240GB SSD', 2, 0, 27, 47500, 3, '2024-05-01', '2024-07-03 10:44:25', 4),
-(20, '202411191', 2, 6, 1, 'Laptop', 1, 1, 27, 20000, 3, '2024-11-19', '2024-11-19 13:35:05', 4),
-(21, '202411192', 2, 6, 1, 'Laptop', 1, 1, 27, 20000, 3, '2024-11-19', '2024-11-19 13:35:05', 4),
-(40, '111', 4, 6, 1, 'test', 1, 0, 27, 100, 4, '2024-11-26', '2024-11-26 15:29:12', 4),
-(42, 'LPTP1002', 2, 5, 1, 'Vivo Laptop', 1, 1, 27, 35000, 3, '2024-11-28', '2024-11-28 09:58:37', 4),
-(43, 'LPTP1003', 2, 5, 1, 'Vivo Laptop', 1, 1, 27, 40000, 3, '2024-11-28', '2024-11-28 09:58:37', 4),
-(44, 'LPTP1004', 2, 5, 1, 'Vivo Laptop', 1, 1, 27, 50000, 3, '2024-11-28', '2024-11-28 09:58:37', 4),
-(45, '314235', 4, 3, 1, 'Inten i5-120344K with Fan Cooler', 5, 5, 27, 9563, 3, '2024-07-03', '2024-11-28 10:07:06', 4);
+(50, 'lptp20240212001', 2, 6, 1, 'Vivo Laptop 16x RYZEN 5600', 1, 1, 27, 35000, 3, '2024-12-02', '2024-12-02 13:19:37', 4),
+(51, 'lptp20240212002', 2, 6, 1, 'Vivo Laptop 16x RYZEN 5600', 1, 0, 27, 40000, 3, '2024-12-02', '2024-12-02 13:19:37', 4);
 
 -- --------------------------------------------------------
 
@@ -247,10 +229,7 @@ CREATE TABLE `inventory_assignment` (
 --
 
 INSERT INTO `inventory_assignment` (`id`, `end_user`, `status`, `date_added`) VALUES
-(173, 8, NULL, '2024-11-19 13:36:29'),
-(177, 8, NULL, '2024-11-26 14:36:44'),
-(178, 8, NULL, '2024-11-26 14:52:15'),
-(187, 8, NULL, '2023-11-26 16:30:24');
+(190, 8, NULL, '2024-12-02 13:20:59');
 
 -- --------------------------------------------------------
 
@@ -281,7 +260,8 @@ INSERT INTO `inventory_assignment_archive` (`id`, `assignment_id`, `end_user`, `
 (74, 176, '13 nik', ' ', '2024-11-19 23:25:54', '2024-11-26 16:12:51'),
 (75, 186, '8 ton', ' ', '2024-11-26 16:13:23', '2024-11-26 16:18:33'),
 (76, 189, '13 nik', ' ', '2024-11-28 16:27:26', '2024-11-28 16:27:44'),
-(79, 188, '13 nik', ' ', '2024-11-28 17:03:49', '2024-11-28 17:04:04');
+(79, 188, '13 nik', ' ', '2024-11-28 17:03:49', '2024-11-28 17:04:04'),
+(80, 178, '8 ton', ' ', '2024-11-26 14:52:15', '2024-11-29 15:42:29');
 
 -- --------------------------------------------------------
 
@@ -325,44 +305,7 @@ CREATE TABLE `inventory_assignment_item` (
 --
 
 INSERT INTO `inventory_assignment_item` (`id`, `assignment_id`, `property_no`, `description`, `location`, `unit`, `qty`, `unit_cost`, `total_cost`, `acquisition_date`) VALUES
-(218, 173, '1142356', 'DJI Drone', 'IT Departments', 'pcs', 2, 29000, 58000, '2024-07-03'),
-(219, 177, '435426', 'DJI Battery 20v', 'IT Department', 'pcs', 2, 4000, 8000, '2024-07-03'),
-(220, 178, '435426', 'DJI Battery 20v', 'IT Departments', 'pcs', 3, 4000, 12000, '2024-07-03'),
-(224, 187, '2415554', 'Acer Predator VK85 - Intel i7-13435 16GB 240GB SSD', 'IT Department', 'pcs', 2, 47500, 95000, '2024-05-01'),
-(229, 187, '111', 'test', 'Faculty Office', 'pcs', 1, 100, 100, '2024-11-26');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `inventory_transfer`
---
-
-CREATE TABLE `inventory_transfer` (
-  `id` int(6) NOT NULL,
-  `new_end_user` int(4) NOT NULL,
-  `old_end_user` int(4) NOT NULL,
-  `date_added` date NOT NULL,
-  `date_transferred` date NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `inventory_transfer_item`
---
-
-CREATE TABLE `inventory_transfer_item` (
-  `id` int(6) NOT NULL,
-  `transfer_id` int(6) NOT NULL,
-  `property_no` int(18) NOT NULL,
-  `description` longtext NOT NULL,
-  `location` varchar(30) NOT NULL,
-  `unit` varchar(20) NOT NULL,
-  `qty` int(7) NOT NULL,
-  `unit_cost` double NOT NULL,
-  `total_cost` double NOT NULL,
-  `acquisition_date` date NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+(232, 190, 'lptp20240212002', 'Vivo Laptop 16x RYZEN 5600', 'Faculty Office', 'pcs', 1, 40000, 40000, '2024-12-02');
 
 -- --------------------------------------------------------
 
@@ -430,7 +373,7 @@ CREATE TABLE `sub_admin` (
 
 INSERT INTO `sub_admin` (`id`, `user_id`, `first_name`, `middle_name`, `last_name`, `contact`, `sex`, `designation`, `status`, `date_registered`) VALUES
 (13, 27, 'sub', 'sub', 'sub', '9123456789', 'female', 3, 1, '2024-11-28'),
-(14, 31, 'sub', 'sub', 'sub', '9123456789', 'Male', 3, 1, '2024-11-28');
+(14, 31, 'Bryl', 'S', 'Agpalo', '9123456789', 'male', 3, 0, '2024-11-28');
 
 -- --------------------------------------------------------
 
@@ -497,9 +440,8 @@ INSERT INTO `users` (`id`, `role_id`, `username`, `password`, `date_created`) VA
 (6, 3, 'ton', '$2y$10$l2agObbVLyAN.sHQVaSbjuTlbRZFOnWmGQB9BHgtZvvRYdYiBALGi', '2024-10-21 12:50:08'),
 (11, 3, 'nik', '$2y$10$5xnYr7xBNiBnbaUHstNp0e7UL/dy1Ool78OI8rbW3T6pSfSvh4RFm', '2024-11-19 23:25:35'),
 (27, 2, 'sub', '$2y$10$/a9Xt6wsnlp09vbk5nxX1.RJBPyXyhHST6hj5YK2nLmWF.tzfDUGe', '2024-11-28 15:05:10'),
-(30, 3, 'test', '$2y$10$ps.5Znl.Q4MPJ9Exv1Zoae5x09yYU9JSc34zrygVWzxSVW7dggGkq', '2024-11-28 16:49:36'),
-(31, 2, 'sub1', '$2y$10$pU1yZtDWOEI5LOeyfr0jgO26YxA1.lt8MVFLMJ7sMv4Fz7WYT9OAi', '2024-11-28 17:21:49'),
-(33, 3, 'test1', '$2y$10$byQ/YPgqWD2r6VQDa.8RruaKiRCSc9P.7X5HvV9x.U5mzLAnpmRfC', '2024-11-29 10:49:17');
+(31, 2, 'bryl', '$2y$10$pupEYVXo3oONX64qt/dTj.uss9vqOsSK9VHpPHOuW4b8MGFKTq81W', '2024-11-28 17:21:49'),
+(35, 2, 'test', '$2y$10$2C98REW613mD.lGWcpUsD.PTFyRZdBBKbBsQwI86Z5HorJz.f7E7W', '2024-12-02 13:34:19');
 
 --
 -- Indexes for dumped tables
@@ -591,19 +533,6 @@ ALTER TABLE `inventory_assignment_item`
   ADD KEY `assignment_fk_id` (`assignment_id`);
 
 --
--- Indexes for table `inventory_transfer`
---
-ALTER TABLE `inventory_transfer`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `inventory_transfer_item`
---
-ALTER TABLE `inventory_transfer_item`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `inventory_fk_transfer_id` (`transfer_id`);
-
---
 -- Indexes for table `location`
 --
 ALTER TABLE `location`
@@ -656,7 +585,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `archive_inventory`
 --
 ALTER TABLE `archive_inventory`
-  MODIFY `id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
+  MODIFY `id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
 
 --
 -- AUTO_INCREMENT for table `article`
@@ -680,7 +609,7 @@ ALTER TABLE `designation`
 -- AUTO_INCREMENT for table `end_user`
 --
 ALTER TABLE `end_user`
-  MODIFY `id` int(4) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(4) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `estimated_life`
@@ -692,25 +621,25 @@ ALTER TABLE `estimated_life`
 -- AUTO_INCREMENT for table `history_log`
 --
 ALTER TABLE `history_log`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=568;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=593;
 
 --
 -- AUTO_INCREMENT for table `inventory`
 --
 ALTER TABLE `inventory`
-  MODIFY `inv_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
+  MODIFY `inv_id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
 
 --
 -- AUTO_INCREMENT for table `inventory_assignment`
 --
 ALTER TABLE `inventory_assignment`
-  MODIFY `id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=190;
+  MODIFY `id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=191;
 
 --
 -- AUTO_INCREMENT for table `inventory_assignment_archive`
 --
 ALTER TABLE `inventory_assignment_archive`
-  MODIFY `id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=80;
+  MODIFY `id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=81;
 
 --
 -- AUTO_INCREMENT for table `inventory_assignment_archive_items`
@@ -722,19 +651,7 @@ ALTER TABLE `inventory_assignment_archive_items`
 -- AUTO_INCREMENT for table `inventory_assignment_item`
 --
 ALTER TABLE `inventory_assignment_item`
-  MODIFY `id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=232;
-
---
--- AUTO_INCREMENT for table `inventory_transfer`
---
-ALTER TABLE `inventory_transfer`
-  MODIFY `id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=119;
-
---
--- AUTO_INCREMENT for table `inventory_transfer_item`
---
-ALTER TABLE `inventory_transfer_item`
-  MODIFY `id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65;
+  MODIFY `id` int(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=233;
 
 --
 -- AUTO_INCREMENT for table `location`
@@ -752,7 +669,7 @@ ALTER TABLE `note`
 -- AUTO_INCREMENT for table `sub_admin`
 --
 ALTER TABLE `sub_admin`
-  MODIFY `id` int(4) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(4) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `system_content`
@@ -770,7 +687,7 @@ ALTER TABLE `unit`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(4) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
+  MODIFY `id` int(4) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
 -- Constraints for dumped tables
@@ -805,12 +722,6 @@ ALTER TABLE `inventory_assignment_archive_items`
 --
 ALTER TABLE `inventory_assignment_item`
   ADD CONSTRAINT `assignment_fk_id` FOREIGN KEY (`assignment_id`) REFERENCES `inventory_assignment` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `inventory_transfer_item`
---
-ALTER TABLE `inventory_transfer_item`
-  ADD CONSTRAINT `inventory_fk_transfer_id` FOREIGN KEY (`transfer_id`) REFERENCES `inventory_transfer` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `sub_admin`

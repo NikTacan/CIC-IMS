@@ -180,8 +180,13 @@
 															<input class="form-control" type="text" name="username" value="" placeholder="Enter username" maxlength="20" required>
 														</div>
 														<div class="form-group col-4">
-															<label class="col-form-label">Password</label>
-															<input class="form-control" type="text" name="password" value="" placeholder="Enter password" required>
+															<label for="new-password">Password</label>
+															<div class="input-group">
+																<input class="form-control" type="password"  id="password" name="password" placeholder="Enter password" required>
+																<div class="input-group-text">
+																	<i class="fa fa-eye" id="password-toggle"></i>
+																</div>
+															</div>
 														</div>
 														<div class="form-group col-4">
 															<label class="col-form-label">First name</label>
@@ -212,8 +217,8 @@
 															<label class="col-form-label">Gender</label>
 															<select name="sex" id="sex">
 																<option value="" selected hidden>-- Select gender --</option>
-																<option value="Male">Male</option>
-																<option value="Female">Female</option>
+																<option value="male">Male</option>
+																<option value="female">Female</option>
 															</select>
 														</div>
 														<div class="form-group col-4">
@@ -518,6 +523,28 @@
 
 	<?php include('../includes/layouts/main-layouts/scripts.php'); ?>
 	<?php include('../includes/js/data-tables.php'); ?>
+
+	<script>
+        // Function to toggle password visibility
+        function togglePasswordVisibility(inputId, toggleId) {
+            var input = document.getElementById(inputId);
+            var toggle = document.getElementById(toggleId);
+            if (input.type === "password") {
+                input.type = "text";
+                toggle.classList.remove("fa-eye");
+                toggle.classList.add("fa-eye-slash");
+            } else {
+                input.type = "password";
+                toggle.classList.remove("fa-eye-slash");
+                toggle.classList.add("fa-eye");
+            }
+        }
+
+        // Event listeners for toggling password visibility
+        document.getElementById("password-toggle").addEventListener("click", function() {
+            togglePasswordVisibility("password", "password-toggle");
+        });
+	</script>
 
 </body>
 </html>

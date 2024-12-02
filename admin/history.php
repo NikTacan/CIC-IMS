@@ -98,7 +98,7 @@
 						</div>
 					</div>
 				</li>
-				<li class="" style="margin-top: 0px;">
+				<li class="show" style="margin-top: 0px;">
 					<a href="history" class="ttr-material-button">
 						<span class="ttr-icon"><i class="fa fa-history" aria-hidden="true"></i></span>
 						<span class="ttr-label">Activity Logs</span>
@@ -176,7 +176,7 @@
 														</span>
 														<span class="text-normal"><?php echo $log['log_message']; ?></span>
 													</td>
-													<td><?php echo date('M d, Y g:i A', strtotime($log['date_time'])); ?></td>
+													<td><?php echo date('M. d, Y g:i A', strtotime($log['date_time'])); ?></td>
 													
 													<!-- If module is inventory -->
 													<?php if($module == 'inventory'): ?>

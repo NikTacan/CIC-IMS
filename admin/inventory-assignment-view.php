@@ -234,77 +234,35 @@
 							
 							<!-- table -->
 							<table id="assignment-table" class="table table-striped table-hover" style="width:100%">
-									<thead>
+								<thead>
+									<tr>
+										<th>Property No.</th>
+										<th class="col-4">Description</th>
+										<th>Location</th>
+										<th>Unit</th>
+										<th>Quantity</th>
+										<th>Unit Cost</th>
+										<th>Total Cost</th>
+										<th>Acquisition Date</th>
+									</tr>
+								</thead>
+								<tbody>
+									<?php if(!empty($assignment_items)): ?>
+										<?php foreach ($assignment_items as $assignment_item): ?>
 										<tr>
-											<th>Property No.</th>
-											<th class="col-4">Description</th>
-											<th>Location</th>
-											<th>Unit</th>
-											<th>Quantity</th>
-											<th>Unit Cost</th>
-											<th>Total Cost</th>
-											<th>Acquisition Date</th>
+											<td><?php echo $assignment_item['property_no']; ?></td>
+											<td><?php echo $assignment_item['description']; ?></td>
+											<td><?php echo $assignment_item['location']; ?></td>
+											<td><?php echo $assignment_item['unit']; ?></td>
+											<td><?php echo $assignment_item['qty']; ?></td>
+											<td><?php echo number_format($assignment_item['unit_cost'], 2, '.', ','); ?></td>
+											<td><?php echo number_format($assignment_item['total_cost'], 2, '.', ','); ?></td>
+											<td><?php echo date('F d, Y', strtotime($assignment_item['acquisition_date'])); ?></td>
 										</tr>
-									</thead>
-									<tbody>
-										<?php if(!empty($assignment_items)): ?>
-											<?php foreach ($assignment_items as $assignment_item): ?>
-											<tr>
-												<td><?php echo $assignment_item['property_no']; ?></td>
-												<td><?php echo $assignment_item['description']; ?></td>
-												<td><?php echo $assignment_item['location']; ?></td>
-												<td><?php echo $assignment_item['unit']; ?></td>
-												<td><?php echo $assignment_item['qty']; ?></td>
-												<td><?php echo number_format($assignment_item['unit_cost'], 2, '.', ','); ?></td>
-												<td><?php echo number_format($assignment_item['total_cost'], 2, '.', ','); ?></td>
-												<td><?php echo date('F d, Y', strtotime($assignment_item['acquisition_date'])); ?></td>
-											</tr>
-											<?php endforeach; ?>
-										<?php endif; ?>
-									</tbody>
-								</table>
-								
-							<!-- Transfer inventory assignment modal or forms -->
-							<div id="transfer-assignment" class="modal fade" role="dialog">
-								<form class="transfer-assignment m-b30" method="POST" enctype="multipart/form-data">
-									<div class="modal-dialog modal-md">
-										<div class="modal-content">
-											<div class="modal-header">
-												<input type="hidden" name="assignment_id" value="<?php echo $assignment_id; ?>">
-												<input type="hidden" name="oldEndUser" value="<?php echo $assignment_details['end_user']; ?>">
-												<h4 class="modal-title">&nbsp;Property Transfer</h4>
-												<button type="button" class="close" data-dismiss="modal">&times;</button>
-											</div>
-											<div class="modal-body">
-												<div class="row">
-													<div class="form-group col-12" style="padding-bottom: 15px;">
-														<div class="row">
-															<div class="form-group col-12">
-																<label class="col-form-label">Accountable End User</label>
-																<select class="form-control" name="newEndUser" required>
-																	<option value="" selected disabled hidden>-- Select End User --</option>
-																	<?php if (!empty($endUsers)): ?>
-																		<?php foreach ($endUsers as $endUser): ?>
-																			<?php if($endUser['end_user_id'] != $endUserId): ?>
-																				<option value="<?php echo $endUser['end_user_id']; ?>"><?php echo $endUser['username']; ?></option>
-																			<?php endif; ?>
-																		<?php endforeach; ?>
-																	<?php endif; ?>
-																</select>
-															</div>
-														</div>
-													</div>
-												</div>
-											</div>
-											<div class="modal-footer">
-												<input type="submit" class="btn green radius-xl outline" name="transfer-assignment" value="Next">
-												<button type="button" class="btn red outline radius-xl" data-dismiss="modal">Close</button>
-											</div>
-										</div>
-									</div>
-								</form>
-							</div>
-							
+										<?php endforeach; ?>
+									<?php endif; ?>
+								</tbody>
+							</table>
 						</div> <!-- row -->
 						
 						<?php
@@ -323,24 +281,6 @@
 
 	<?php include('../includes/layouts/main-layouts/scripts.php'); ?>
 	<?php include('../includes/js/data-tables.php'); ?>
-
-	<!-- Insert inventory assignment modal or forms -->
-	<script>
-		document.addEventListener("DOMContentLoaded", function() {
-			var tableBody = document.querySelector("#assignment-table tbody");
-			var transferButton = document.getElementById("transfer-button");
-
-			transferButton.addEventListener("click", function(event) {
-				if (tableBody.rows.length === 0) {
-					event.preventDefault();
-					alert("Cannot transfer, the table is empty!");
-				} else {
-					// Manually trigger the modal if the table is not empty
-					$('#transfer-assignment').modal('show');
-				}
-			});
-		});
-	</script>
 
 </body>
 

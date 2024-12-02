@@ -159,7 +159,6 @@
 									<tr>
 										<th>Property No.</th>
 										<th class="col-4">Description</th>
-										<th>Status</th>
 										<th width="50">Quantity</th>
 										<th width="40">Unit</th>
 										<th>Unit Cost</th>
@@ -185,7 +184,6 @@
 														echo implode(' ', array_slice($words, 0, 7));
 													?>
 												</td>
-												<td><span class="td-underline">Assigned</span></td>
 												<td><?php echo $itemInfo['qty']; ?></td>
 												<td><?php echo $itemInfo['unit']; ?></td>
 												<td><?php echo $itemInfo['unit_cost']; ?></td>

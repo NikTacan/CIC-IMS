@@ -3,7 +3,7 @@
 	Class Model {
 		private $server = "localhost";
 		private $username = "root";
-		private $password = "";
+		private $password = "cicims";
 		private $dbname = "cic_ims";
 		private $conn;
 
@@ -2307,7 +2307,7 @@
 				LEFT JOIN category c ON i.category = c.id
 				LEFT JOIN unit u ON i.unit = u.id
 				LEFT JOIN estimated_life e ON i.est_life = e.id 
-				WHERE i.remark = ? AND i.date_added BETWEEN ? AND ?
+				WHERE i.remark = ? AND DATE(i.date_added) BETWEEN ? AND ?
 				ORDER BY i.date_added ASC";
 
 			if ($stmt = $this->conn->prepare($query)) {
@@ -2333,7 +2333,8 @@
 				LEFT JOIN unit u ON i.unit = u.id
 				LEFT JOIN estimated_life e ON i.est_life = e.id
 				LEFT JOIN note n ON i.remark = n.id 
-				WHERE i.date_added BETWEEN ? AND ? ORDER BY i.date_added ASC";
+				WHERE DATE(i.date_added) BETWEEN ? AND ? ORDER BY i.date_added ASC";
+
 			if ($stmt = $this->conn->prepare($query)) {
 				$stmt->bind_param("ss", $fromDate, $toDate);
 				$stmt->execute();
@@ -2386,7 +2387,7 @@
 					  LEFT JOIN inventory_assignment_item c ON i.id = c.assignment_id
 					  LEFT JOIN end_user e ON i.end_user = e.id
 					  LEFT JOIN users u ON e.user_id = u.id
-					  WHERE i.end_user = ? AND i.date_added BETWEEN ? AND ?";
+					  WHERE i.end_user = ? AND DATE(i.date_added) BETWEEN ? AND ?";
 
 			if ($stmt = $this->conn->prepare($query)) {
 				$stmt->bind_param("sss", $end_user, $fromDate, $toDate);
@@ -2410,7 +2411,7 @@
 					  LEFT JOIN inventory_assignment_item c ON i.id = c.assignment_id
 					  LEFT JOIN end_user e ON i.end_user = e.id
 					  LEFT JOIN users u ON e.user_id = u.id
-					  WHERE i.date_added BETWEEN ? AND ?";
+					  WHERE DATE(i.date_added) BETWEEN ? AND ?";
 
 			if ($stmt = $this->conn->prepare($query)) {
 				$stmt->bind_param("ss", $fromDate, $toDate);
